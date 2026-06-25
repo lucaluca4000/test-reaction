@@ -39,8 +39,8 @@ body{
 .jumpscare{
     display:none;
     position:fixed;
-    width:250px;
-    height:250px;
+    width:200px;
+    height:200px;
     object-fit:cover;
     z-index:9999;
     animation: tourner 4s linear infinite;
@@ -84,6 +84,8 @@ const images = [
 
 const son = document.getElementById("son");
 
+let intervalDanse = null;
+
 zone.onclick = lancer;
 
 function lancer(){
@@ -106,39 +108,42 @@ function lancer(){
 
             let temps = Date.now()-debut;
 
-            // 🎉 EFFET AU 2E TOUR
+            // 🎉 FÊTE AU TOUR 2
             if(tour == 2){
 
                 zone.onclick = null;
                 zone.style.pointerEvents = "none";
 
-                images.forEach(img => img.style.display = "block");
+                images.forEach(img => {
+                    img.style.display = "block";
+                    img.style.top = "40%"; // 👉 même hauteur
+                    img.style.left = Math.random()*80 + "vw";
+                });
 
                 son.play();
 
-                const objets = images.map(() => ({
-                    x: Math.random()*(window.innerWidth-250),
-                    y: Math.random()*(window.innerHeight-250),
-                    dx: (Math.random()*4+2)*(Math.random()<0.5?-1:1),
-                    dy: (Math.random()*4+2)*(Math.random()<0.5?-1:1)
-                }));
+                // 🎉 DANSE SYNCHRONISÉE
+                let direction = 1;
+                let yBase = window.innerHeight * 0.4;
 
-                setInterval(function(){
+                intervalDanse = setInterval(() => {
 
-                    objets.forEach(function(o,i){
+                    images.forEach((img, i) => {
 
-                        o.x += o.dx;
-                        o.y += o.dy;
+                        let x = parseFloat(img.style.left);
 
-                        if(o.x <= 0 || o.x >= window.innerWidth-250) o.dx *= -1;
-                        if(o.y <= 0 || o.y >= window.innerHeight-250) o.dy *= -1;
+                        x += direction * (2 + i*0.3);
 
-                        images[i].style.left = o.x + "px";
-                        images[i].style.top = o.y + "px";
+                        if(x > window.innerWidth - 200 || x < 0){
+                            direction *= -1;
+                        }
+
+                        img.style.left = x + "px";
+                        img.style.top = yBase + Math.sin(Date.now()/200 + i)*30 + "px";
 
                     });
 
-                },16);
+                }, 16);
 
                 return;
             }
