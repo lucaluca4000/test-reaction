@@ -39,8 +39,8 @@ body{
 .jumpscare{
     display:none;
     position:fixed;
-    width:200px;
-    height:200px;
+    width:180px;
+    height:180px;
     object-fit:cover;
     z-index:9999;
     animation: tourner 4s linear infinite;
@@ -84,7 +84,8 @@ const images = [
 
 const son = document.getElementById("son");
 
-let intervalDanse = null;
+let chaosInterval = null;
+let danceInterval = null;
 
 zone.onclick = lancer;
 
@@ -108,7 +109,7 @@ function lancer(){
 
             let temps = Date.now()-debut;
 
-            // 🎉 FÊTE AU TOUR 2
+            // 🎉 TOUR 2 = ANIMATION
             if(tour == 2){
 
                 zone.onclick = null;
@@ -116,34 +117,71 @@ function lancer(){
 
                 images.forEach(img => {
                     img.style.display = "block";
-                    img.style.top = "40%"; // 👉 même hauteur
-                    img.style.left = Math.random()*80 + "vw";
+                    img.style.left = Math.random()*window.innerWidth + "px";
+                    img.style.top = Math.random()*window.innerHeight + "px";
                 });
 
                 son.play();
 
-                // 🎉 DANSE SYNCHRONISÉE
-                let direction = 1;
-                let yBase = window.innerHeight * 0.4;
+                /* =========================
+                   1️⃣ CHAOS : tourne + bouge partout
+                ========================= */
+                let angle = 0;
 
-                intervalDanse = setInterval(() => {
+                chaosInterval = setInterval(() => {
 
                     images.forEach((img, i) => {
 
-                        let x = parseFloat(img.style.left);
+                        angle += 0.02;
 
-                        x += direction * (2 + i*0.3);
+                        let radius = 100 + i*20;
 
-                        if(x > window.innerWidth - 200 || x < 0){
-                            direction *= -1;
-                        }
+                        let x = window.innerWidth/2 + Math.cos(angle + i)*radius;
+                        let y = window.innerHeight/2 + Math.sin(angle + i)*radius;
 
                         img.style.left = x + "px";
-                        img.style.top = yBase + Math.sin(Date.now()/200 + i)*30 + "px";
+                        img.style.top = y + "px";
 
                     });
 
                 }, 16);
+
+                /* =========================
+                   2️⃣ après 3 sec -> alignement
+                ========================= */
+                setTimeout(() => {
+
+                    clearInterval(chaosInterval);
+
+                    let baseY = window.innerHeight * 0.4;
+
+                    images.forEach((img, i) => {
+                        img.style.top = baseY + "px";
+                        img.style.left = (window.innerWidth/2 - 300 + i*200) + "px";
+                    });
+
+                    /* =========================
+                       3️⃣ DANSE SYNCHRONISÉE
+                    ========================= */
+                    let dir = 1;
+
+                    danceInterval = setInterval(() => {
+
+                        let move = dir * 3;
+
+                        images.forEach((img) => {
+                            let x = parseFloat(img.style.left);
+                            img.style.left = (x + move) + "px";
+                            img.style.top = baseY + Math.sin(Date.now()/200)*10 + "px";
+                        });
+
+                        if(images[0].offsetLeft > window.innerWidth - 200 || images[0].offsetLeft < 0){
+                            dir *= -1;
+                        }
+
+                    }, 16);
+
+                }, 3000);
 
                 return;
             }
