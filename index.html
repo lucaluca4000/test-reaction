@@ -41,7 +41,6 @@ img{
     position:fixed;
     width:170px;
     height:170px;
-    object-fit:cover;
 }
 </style>
 </head>
@@ -63,12 +62,14 @@ img{
 
 <script>
 
+/* =========================
+   VARIABLES SIMPLES
+========================= */
 let tour = 1;
-let state = "idle";
+let phase = "wait"; // wait / ready / result
 
 const zone = document.getElementById("zone");
 const tourTexte = document.getElementById("tour");
-
 const imgs = [i1,i2,i3,i4];
 
 const m1 = document.getElementById("m1");
@@ -78,27 +79,27 @@ const heli = document.getElementById("heli");
 let chaos, sandstorm, helicopter;
 
 /* =========================
-   🟢 BOUTON TOUJOURS ACTIF
+   BOUTON UNIQUE (NE CASSE JAMAIS)
 ========================= */
 zone.addEventListener("click", () => {
 
-if(state !== "idle") return;
-
-state = "waiting";
+/* --- PHASE ATTENTE --- */
+if(phase === "wait"){
+phase = "ready";
 zone.innerHTML = "Attends...";
 
 setTimeout(()=>{
-
-state = "clickable";
+phase = "click";
 zone.innerHTML = "CLIQUE !";
+}, 800);
 
-const start = Date.now();
+return;
+}
 
-zone.onclick = () => {
+/* --- CLICK NORMAL --- */
+if(phase !== "click") return;
 
-if(state !== "clickable") return;
-
-state = "idle";
+phase = "wait";
 
 tour++;
 
@@ -110,7 +111,7 @@ return;
 tourTexte.innerHTML = "Tour "+tour+" / 3";
 
 /* =========================
-   🎵 TOUR 2
+   🎵 TOUR 2 SHOW
 ========================= */
 if(tour == 2){
 
@@ -197,12 +198,7 @@ img.style.display="none";
 
 },2500);
 
-return;
 }
-
-};
-
-},800);
 
 });
 
