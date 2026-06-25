@@ -81,7 +81,6 @@ zone.onclick = handleClick;
 
 function handleClick(){
 
-// ✅ empêche spam mais ne bloque jamais définitivement
 if(state !== "ready") return;
 
 state = "waiting";
@@ -90,6 +89,7 @@ zone.innerHTML = "Attends...";
 setTimeout(()=>{
 
 zone.innerHTML = "CLIQUE !";
+
 let start = Date.now();
 
 state = "click";
@@ -99,8 +99,6 @@ zone.onclick = function(){
 if(state !== "click") return;
 
 state = "ready";
-
-let t = Date.now() - start;
 
 tour++;
 
@@ -116,38 +114,36 @@ tourTexte.innerHTML = "Tour "+tour+" / 3";
 ========================= */
 if(tour == 2){
 
-zone.style.pointerEvents = "auto"; // 🔥 IMPORTANT FIX
-
 imgs.forEach(img=>{
 img.style.display="block";
 img.style.left=Math.random()*window.innerWidth+"px";
 img.style.top=Math.random()*window.innerHeight+"px";
 });
 
-/* ===== CHAOS ===== */
+/* ===== CHAOS MUSIC 1 ===== */
 m1.play();
 
-let t1 = 0;
+let t = 0;
 
 chaos = setInterval(()=>{
 
-t1 += 0.05;
+t += 0.05;
 
 imgs.forEach((img,i)=>{
-img.style.left = window.innerWidth/2 + Math.cos(t1+i)*150 + "px";
-img.style.top = window.innerHeight/2 + Math.sin(t1+i)*150 + "px";
+img.style.left = window.innerWidth/2 + Math.cos(t+i)*150 + "px";
+img.style.top = window.innerHeight/2 + Math.sin(t+i)*150 + "px";
 });
 
 },16);
 
-/* ===== SANDSTORM ===== */
+/* ===== SANDSTORM DANCE ===== */
 setTimeout(()=>{
 
 clearInterval(chaos);
 m1.pause();
 m2.play();
 
-let baseY = window.innerHeight*0.4;
+let baseY = window.innerHeight * 0.4;
 
 imgs.forEach((img,i)=>{
 img.style.left = (window.innerWidth/2 - 250 + i*170)+"px";
@@ -164,11 +160,13 @@ let move = Math.sin(step/8)*6;
 let pulse = Math.sin(step/4)*10;
 
 imgs.forEach(img=>{
+
 let x = parseFloat(img.style.left);
 
-img.style.left = (x + move)+"px";
-img.style.top = (baseY + pulse)+"px";
+img.style.left = (x + move) + "px";
+img.style.top = (baseY + pulse) + "px";
 img.style.transform = "rotate("+(Math.sin(step/6)*5)+"deg)";
+
 });
 
 /* ===== HELICOPTER ===== */
