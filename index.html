@@ -47,14 +47,11 @@ body{
 }
 
 @keyframes tourner{
-    from{
-        transform:rotate(0deg);
-    }
-    to{
-        transform:rotate(360deg);
-    }
+    from{transform:rotate(0deg);}
+    to{transform:rotate(360deg);}
 }
 </style>
+
 </head>
 <body>
 
@@ -62,14 +59,12 @@ body{
 
 <div id="tour">Tour 1 / 5</div>
 
-<div id="zone">
-Clique pour commencer
-</div>
+<div id="zone">Clique pour commencer</div>
 
 <img id="img1" class="jumpscare" src="R.jpg">
-<img id="img2" class="jumpscare" src="toi.webp">
+<img id="img2" class="jumpscare" src="moi.png">
 <img id="img3" class="jumpscare" src="roi.jpeg">
-<img id="img4" class="jumpscare" src="moi.png">
+<img id="img4" class="jumpscare" src="toi.webp">
 
 <audio id="son" src="brainfart-type-beat.mp3"></audio>
 
@@ -95,8 +90,8 @@ function lancer(){
 
     zone.onclick = null;
 
-    zone.style.background = "#d32f2f";
-    zone.innerHTML = "Attends...";
+    zone.style.background="#d32f2f";
+    zone.innerHTML="Attends...";
 
     let attente = Math.random()*3000+1500;
 
@@ -112,6 +107,9 @@ function lancer(){
             let temps = Date.now()-debut;
 
             if(tour == 4){
+
+                zone.onclick = null;
+                zone.style.pointerEvents = "none";
 
                 images.forEach(img => img.style.display = "block");
 
@@ -147,23 +145,21 @@ function lancer(){
             tour++;
 
             if(tour > 5){
-                tourTexte.innerHTML = "Test terminé !";
-                zone.innerHTML = "Bravo !";
-                zone.style.background = "#1976d2";
+                tourTexte.innerHTML="Test terminé !";
+                zone.innerHTML="Bravo !";
+                zone.style.background="#1976d2";
                 return;
             }
 
-            tourTexte.innerHTML = "Tour " + tour + " / 5";
+            tourTexte.innerHTML="Tour "+tour+" / 5";
 
-            zone.style.background = "#1976d2";
-            zone.innerHTML = "Temps : " + temps + " ms<br><br>Clique pour continuer";
+            zone.style.background="#1976d2";
+            zone.innerHTML="Temps : "+temps+" ms<br><br>Clique pour continuer";
 
             zone.onclick = lancer;
-
         }
 
     },attente);
-
 }
 
 </script>
