@@ -28,7 +28,6 @@ body{
     font-size:30px;
     cursor:pointer;
     border-radius:15px;
-    user-select:none;
 }
 
 #tour{
@@ -64,7 +63,6 @@ img{
 <script>
 
 let tour = 1;
-let state = "wait"; // 👈 contrôle propre
 
 const zone = document.getElementById("zone");
 const tourTexte = document.getElementById("tour");
@@ -77,30 +75,22 @@ const heli = document.getElementById("heli");
 
 let chaos, dance, helicopter;
 
-zone.onclick = handleClick;
+zone.onclick = start;
 
-function handleClick(){
+function start(){
 
-// 👉 toujours actif
-if(state !== "wait") return;
-
-state = "delay";
+zone.onclick = null;
 zone.innerHTML = "Attends...";
 
 setTimeout(()=>{
 
 zone.innerHTML = "CLIQUE !";
-let startTime = Date.now();
 
-state = "click";
+let debut = Date.now();
 
 zone.onclick = function(){
 
-if(state !== "click") return;
-
-state = "wait";
-
-let t = Date.now() - startTime;
+let t = Date.now() - debut;
 
 tour++;
 
@@ -111,16 +101,18 @@ return;
 
 tourTexte.innerHTML = "Tour "+tour+" / 3";
 
-/* ================= TOUR 2 SHOW ================= */
+/* =========================
+   🎵 TOUR 2
+========================= */
 if(tour == 2){
 
 zone.style.pointerEvents="none";
 
-/* CHAOS + MUSIC 1 */
-imgs.forEach(i=>{
-i.style.display="block";
-i.style.left=Math.random()*window.innerWidth+"px";
-i.style.top=Math.random()*window.innerHeight+"px";
+/* ===== CHAOS + MUSIQUE 1 ===== */
+imgs.forEach(img=>{
+img.style.display="block";
+img.style.left=Math.random()*window.innerWidth+"px";
+img.style.top=Math.random()*window.innerHeight+"px";
 });
 
 m1.play();
@@ -138,7 +130,9 @@ img.style.top = window.innerHeight/2 + Math.sin(t1+i)*150 + "px";
 
 },16);
 
-/* SANDSTORM */
+/* =========================
+   💃 SANDSTORM DANCE
+========================= */
 setTimeout(()=>{
 
 clearInterval(chaos);
@@ -162,12 +156,18 @@ let move = Math.sin(step/8)*6;
 let pulse = Math.sin(step/4)*10;
 
 imgs.forEach(img=>{
+
 let x = parseFloat(img.style.left);
+
 img.style.left = (x + move)+"px";
 img.style.top = (baseY + pulse)+"px";
 img.style.transform = "rotate("+(Math.sin(step/6)*5)+"deg)";
+
 });
 
+/* =========================
+   🚁 HELICOPTER MODE
+========================= */
 if(step > 60){
 
 clearInterval(dance);
@@ -178,7 +178,7 @@ let angle = 0;
 
 helicopter = setInterval(()=>{
 
-angle += 0.4;
+angle += 0.5;
 
 imgs.forEach((img,i)=>{
 
@@ -187,7 +187,7 @@ let y = parseFloat(img.style.top) - 12;
 
 img.style.left = x+"px";
 img.style.top = y+"px";
-img.style.transform = "rotate("+angle*20+"deg)";
+img.style.transform = "rotate("+(angle*25)+"deg)";
 
 if(y < -200){
 img.style.display="none";
@@ -199,15 +199,12 @@ img.style.display="none";
 
 }
 
-},5000);
-
 },3000);
 
 return;
 }
 
-/* reset click */
-zone.onclick = handleClick;
+zone.onclick = start;
 
 };
 
