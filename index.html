@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Test de réaction Sandstorm</title>
+<title>Test de réaction ULTRA</title>
 
 <style>
 body{
@@ -28,7 +28,6 @@ body{
     font-size:30px;
     cursor:pointer;
     border-radius:15px;
-    user-select:none;
 }
 
 #tour{
@@ -59,6 +58,7 @@ body{
 <img id="img4" class="jumpscare" src="toi.webp">
 
 <audio id="music" src="brainfart-type-beat.mp3"></audio>
+<audio id="helicopter" src="helicopter-helicopter.mp3"></audio>
 
 <script>
 
@@ -68,16 +68,15 @@ const zone = document.getElementById("zone");
 const tourTexte = document.getElementById("tour");
 
 const images = [
-document.getElementById("img1"),
-document.getElementById("img2"),
-document.getElementById("img3"),
-document.getElementById("img4")
+img1,img2,img3,img4
 ];
 
 const music = document.getElementById("music");
+const helicopter = document.getElementById("helicopter");
 
 let chaosInterval;
 let danceInterval;
+let flyInterval;
 
 zone.onclick = lancer;
 
@@ -101,7 +100,7 @@ zone.onclick = function(){
 
 let temps = Date.now() - debut;
 
-// 🎉 TOUR 2 = SHOW SANDSTORM
+/* ================= TOUR 2 ================= */
 if(tour == 2){
 
 zone.onclick = null;
@@ -115,7 +114,7 @@ img.style.top=Math.random()*window.innerHeight+"px";
 
 music.play();
 
-/* ================= CHAOS ================= */
+/* ===== CHAOS ===== */
 let t = 0;
 
 chaosInterval = setInterval(()=>{
@@ -134,7 +133,7 @@ img.style.top = y+"px";
 
 },16);
 
-/* ================= ALIGNEMENT ================= */
+/* ===== ALIGNEMENT + DANCE ===== */
 setTimeout(()=>{
 
 clearInterval(chaosInterval);
@@ -146,15 +145,15 @@ img.style.top = baseY+"px";
 img.style.left = (window.innerWidth/2 - 250 + i*170)+"px";
 });
 
-/* ================= SANDSTORM DANCE ================= */
+/* ===== SANDSTORM DANCE ===== */
 let step = 0;
 
 danceInterval = setInterval(()=>{
 
 step++;
 
-let pulse = Math.sin(step/4)*10;
 let move = Math.sin(step/8)*6;
+let pulse = Math.sin(step/4)*10;
 
 images.forEach((img,i)=>{
 
@@ -166,14 +165,50 @@ img.style.transform = "rotate("+(Math.sin(step/6+i)*5)+"deg)";
 
 });
 
-}, 110);
+/* ===== PASSAGE HELICOPTER APRÈS 6s ===== */
+if(step > 60){
+
+clearInterval(danceInterval);
+helicopter.play();
+
+/* ================= HELICOPTER MODE ================= */
+images.forEach((img,i)=>{
+
+let angle = 0;
+let speed = 20 + i*5;
+
+img.style.position="fixed";
+
+flyInterval = setInterval(()=>{
+
+angle += speed;
+
+let x = parseFloat(img.style.left) + Math.cos(angle)*10;
+let y = parseFloat(img.style.top) - 8; // vol vers le haut
+
+img.style.left = x + "px";
+img.style.top = y + "px";
+
+img.style.transform = "rotate("+angle+"deg)";
+
+if(y < -200 || x < -200 || x > window.innerWidth+200){
+img.style.display="none";
+}
+
+},16);
+
+});
+
+}
+
+},110);
 
 },2000);
 
 return;
 }
 
-// progression tours
+/* ================= TOUR NORMAL ================= */
 tour++;
 
 if(tour > 3){
