@@ -57,7 +57,7 @@ body{
 
 <h1>Test de réaction</h1>
 
-<div id="tour">Tour 1 / 5</div>
+<div id="tour">Tour 1 / 3</div>
 
 <div id="zone">Clique pour commencer</div>
 
@@ -106,7 +106,8 @@ function lancer(){
 
             let temps = Date.now()-debut;
 
-            if(tour == 4){
+            // 🎉 EFFET AU 2E TOUR
+            if(tour == 2){
 
                 zone.onclick = null;
                 zone.style.pointerEvents = "none";
@@ -144,14 +145,14 @@ function lancer(){
 
             tour++;
 
-            if(tour > 5){
+            if(tour > 3){
                 tourTexte.innerHTML="Test terminé !";
                 zone.innerHTML="Bravo !";
                 zone.style.background="#1976d2";
                 return;
             }
 
-            tourTexte.innerHTML="Tour "+tour+" / 5";
+            tourTexte.innerHTML="Tour "+tour+" / 3";
 
             zone.style.background="#1976d2";
             zone.innerHTML="Temps : "+temps+" ms<br><br>Clique pour continuer";
