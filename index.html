@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reaction Test</title>
+
+<style>
+html, body {
+    margin: 0;
+    height: 100%;
+    background: black;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial;
+    color: white;
+}
+
+#btn {
+    padding: 20px 30px;
+    font-size: 22px;
+    cursor: pointer;
+    background: white;
+    color: black;
+    border: none;
+    border-radius: 10px;
+}
+
+#text {
+    font-size: 120px;
+    display: none;
+}
+
+#score {
+    font-size: 40px;
+    margin-top: 20px;
+    display: none;
+    text-align: center;
+}
+
+#img {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+}
+
+.shake {
+    animation: shake 0.07s infinite;
+}
+
+@keyframes shake {
+    0% { transform: translate(0,0); }
+    25% { transform: translate(5px,-3px); }
+    50% { transform: translate(-5px,3px); }
+    75% { transform: translate(3px,5px); }
+    100% { transform: translate(0,0); }
+}
+</style>
+</head>
+<body>
+
+<button id="btn">Start Reaction Test</button>
+
+<div id="text">3</div>
+<div id="score"></div>
+
+<img id="img" src="R.jpg">
+
+<audio id="sound" preload="auto">
+    <source src="scream.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const btn = document.getElementById("btn");
+const text = document.getElementById("text");
+const score = document.getElementById("score");
+const img = document.getElementById("img");
+const sound = document.getElementById("sound");
+
+sound.volume = 1.0;
+
+let canClick = false;
+let startTime = 0;
+let timeout;
+
+let round = 0;
+
+/* fullscreen */
+async function fs() {
+    try {
+        if (document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen();
+        }
+    } catch(e) {}
+}
+
+/* screamer */
+function scare() {
+    img.style.display = "block";
+    document.body.classList.add("shake");
+
+    sound.currentTime = 0;
+    sound.play().catch(() => {});
+}
+
+/* start */
+btn.addEventListener("click", async () => {
+    btn.style.display = "none";
+    await fs();
+
+    nextRound();
+});
+
+function nextRound() {
+    round++;
+
+    text.style.display = "block";
+
+    if (round === 4) {
+        // 💀 SCREAM ROUND
+        text.textContent = "3";
+
+        let n = 3;
+
+        const countdown = setInterval(() => {
+            n--;
+
+            if (n > 0) {
+                text.textContent = n;
+            } else {
+                clearInterval(countdown);
+
+                text.textContent = "CLICK!";
+
+                setTimeout(() => {
+                    text.style.display = "none";
+                    scare();
+                }, 500);
+            }
+        }, 1000);
+
+        return;
+    }
+
+    // NORMAL ROUNDS
+    let n = 3;
+    text.textContent = n;
+
+    const countdown = setInterval(() => {
+        n--;
+
+        if (n > 0) {
+            text.textContent = n;
+        } else {
+            clearInterval(countdown);
+
+            text.textContent = "Wait...";
+
+            const delay = Math.random() * 3000 + 1000;
+
+            timeout = setTimeout(() => {
+                text.textContent = "CLICK!";
+                canClick = true;
+                startTime = Date.now();
+            }, delay);
+        }
+    }, 1000);
+}
+
+/* reaction click */
+document.addEventListener("click", () => {
+    if (!canClick) return;
+
+    let reaction = Date.now() - startTime;
+    canClick = false;
+
+    text.style.display = "none";
+
+    score.style.display = "block";
+    score.textContent = "Temps : " + reaction + " ms";
+
+    setTimeout(nextRound, 1200);
+});
+</script>
+
+</body>
+</html>
