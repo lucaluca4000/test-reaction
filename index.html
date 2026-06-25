@@ -61,12 +61,15 @@ img{
 
 <audio id="m1" src="brainfart-type-beat.mp3"></audio>
 <audio id="m2" src="sandstorm.mp3"></audio>
-<audio id="heli" src="helicopter-helicopter.mp3"></audio>
+<audio id="m3" src="helicopter-helicopter.mp3"></audio>
 
 <script>
 
+/* =========================
+   VARIABLES SIMPLES
+========================= */
 let tour = 1;
-let locked = false;
+let state = "idle"; // idle | wait | click | anim
 
 const zone = document.getElementById("zone");
 const tourTxt = document.getElementById("tour");
@@ -80,29 +83,30 @@ document.getElementById("i4")
 
 const m1 = document.getElementById("m1");
 const m2 = document.getElementById("m2");
-const heli = document.getElementById("heli");
+const m3 = document.getElementById("m3");
 
 let chaos, sandstorm, helicopter;
 
 /* =========================
-   🟢 BOUTON FIABLE
+   🟢 CLICK SYSTEM ULTRA STABLE
 ========================= */
 zone.addEventListener("click", () => {
 
-if(locked) return;
-locked = true;
+if(state !== "idle") return;
 
+state = "wait";
 zone.innerHTML = "Attends...";
 
 setTimeout(() => {
 
+state = "click";
 zone.innerHTML = "CLIQUE !";
-locked = false;
 
 zone.onclick = () => {
 
-if(locked) return;
-locked = true;
+if(state !== "click") return;
+
+state = "idle";
 
 tour++;
 
@@ -118,10 +122,11 @@ tourTxt.innerHTML = "Tour " + tour + " / 3";
 ========================= */
 if(tour === 2){
 
-imgs.forEach(img=>{
+/* afficher images */
+imgs.forEach((img,i)=>{
 img.style.display="block";
-img.style.left = (window.innerWidth/2 + Math.random()*100-50) + "px";
-img.style.top = (window.innerHeight/2 + Math.random()*100-50) + "px";
+img.style.left = (window.innerWidth/2 + i*20) + "px";
+img.style.top = (window.innerHeight/2) + "px";
 });
 
 /* ===== CHAOS ===== */
@@ -134,8 +139,8 @@ chaos = setInterval(()=>{
 t += 0.05;
 
 imgs.forEach((img,i)=>{
-img.style.left = window.innerWidth/2 + Math.cos(t+i)*160 + "px";
-img.style.top = window.innerHeight/2 + Math.sin(t+i)*160 + "px";
+img.style.left = window.innerWidth/2 + Math.cos(t+i)*180 + "px";
+img.style.top = window.innerHeight/2 + Math.sin(t+i)*180 + "px";
 });
 
 },16);
@@ -154,23 +159,23 @@ sandstorm = setInterval(()=>{
 
 step++;
 
-let wave = Math.sin(step*0.2)*60;
+let wave = Math.sin(step*0.2)*70;
 let shake = Math.sin(step*0.6)*4;
 
 imgs.forEach((img,i)=>{
 
-img.style.left = window.innerWidth/2 + (i-1.5)*170 + wave + "px";
+img.style.left = window.innerWidth/2 + (i-1.5)*180 + wave + "px";
 img.style.top = baseY + shake + "px";
 img.style.transform = "rotate(" + Math.sin(step*0.1+i)*10 + "deg)";
 
 });
 
 /* ===== 🚁 HELICOPTER ===== */
-if(step > 80){
+if(step > 90){
 
 clearInterval(sandstorm);
 m2.pause();
-heli.play();
+m3.play();
 
 let angle = 0;
 
@@ -180,7 +185,7 @@ angle += 0.6;
 
 imgs.forEach((img,i)=>{
 
-let x = parseFloat(img.style.left) + Math.cos(angle+i)*18;
+let x = parseFloat(img.style.left) + Math.cos(angle+i)*20;
 let y = parseFloat(img.style.top) - 12;
 
 img.style.left = x + "px";
