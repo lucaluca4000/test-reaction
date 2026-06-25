@@ -2,11 +2,12 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Test de Réaction</title>
+<title>Test de réaction</title>
 
 <style>
 body{
-    font-family:Arial;
+    margin:0;
+    font-family:Arial,sans-serif;
     background:#222;
     color:white;
     display:flex;
@@ -14,19 +15,24 @@ body{
     align-items:center;
     flex-direction:column;
     height:100vh;
-    margin:0;
 }
 
 #zone{
-    width:400px;
+    width:450px;
     height:250px;
-    background:red;
+    background:#d32f2f;
     display:flex;
     justify-content:center;
     align-items:center;
+    font-size:30px;
     cursor:pointer;
-    font-size:28px;
+    border-radius:15px;
     user-select:none;
+}
+
+#tour{
+    margin-bottom:20px;
+    font-size:24px;
 }
 
 #jumpscare{
@@ -44,7 +50,9 @@ body{
 </head>
 <body>
 
-<h1>Test de Réaction</h1>
+<h1>Test de réaction</h1>
+
+<div id="tour">Tour 1 / 5</div>
 
 <div id="zone">
 Clique pour commencer
@@ -56,62 +64,64 @@ Clique pour commencer
 
 <script>
 
-const zone=document.getElementById("zone");
-const img=document.getElementById("jumpscare");
-const son=document.getElementById("son");
+let tour = 1;
 
-let tour=0;
-let attente=false;
-let depart=0;
+const zone = document.getElementById("zone");
+const tourTexte = document.getElementById("tour");
+const image = document.getElementById("jumpscare");
+const son = document.getElementById("son");
 
-zone.onclick=()=>{
+zone.onclick = lancer;
 
-    if(attente) return;
+function lancer(){
 
-    tour++;
+    zone.onclick = null;
 
-    // Au 3e tour : jumpscare
-    if(tour===3){
+    zone.style.background = "#d32f2f";
+    zone.innerHTML = "Attends...";
 
-        img.style.display="block";
-        son.volume=1;
-        son.play();
+    let attente = Math.random()*3000+1500;
 
-        return;
-    }
+    setTimeout(function(){
 
-    attente=true;
-    zone.style.background="red";
-    zone.innerHTML="Attends...";
+        zone.style.background = "#2e7d32";
+        zone.innerHTML = "CLIQUE !";
 
-    let delai=Math.random()*3000+1500;
+        let debut = Date.now();
 
-    setTimeout(()=>{
+        zone.onclick = function(){
 
-        zone.style.background="green";
-        zone.innerHTML="CLIQUE !";
-        depart=Date.now();
+            let temps = Date.now()-debut;
 
-        attente=false;
+            if(tour == 4){
 
-        zone.onclick=()=>{
-            let temps=Date.now()-depart;
+                image.style.display = "block";
+                son.play();
 
-            zone.innerHTML="Ton temps : "+temps+" ms";
+                return;
+            }
 
-            zone.style.background="red";
+            tour++;
 
-            zone.onclick=arguments.callee.caller;
+            if(tour>5){
+                tourTexte.innerHTML="Test terminé !";
+                zone.innerHTML="Bravo !";
+                zone.style.background="#1976d2";
+                return;
+            }
 
-            setTimeout(()=>{
-                zone.innerHTML="Clique pour le tour suivant";
-            },1500);
+            tourTexte.innerHTML="Tour "+tour+" / 5";
 
-        };
+            zone.style.background="#1976d2";
+            zone.innerHTML="Temps : "+temps+" ms<br><br>Clique pour continuer";
 
-    },delai);
+            zone.onclick=lancer;
 
-};
+        }
+
+    },attente);
+
+}
 
 </script>
 
