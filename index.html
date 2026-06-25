@@ -28,6 +28,7 @@ body{
     font-size:30px;
     cursor:pointer;
     border-radius:15px;
+    user-select:none;
 }
 
 #tour{
@@ -63,13 +64,12 @@ img{
 <script>
 
 let tour = 1;
+let state = "wait"; // 👈 contrôle propre
 
 const zone = document.getElementById("zone");
 const tourTexte = document.getElementById("tour");
 
-const imgs = [
-i1,i2,i3,i4
-];
+const imgs = [i1,i2,i3,i4];
 
 const m1 = document.getElementById("m1");
 const m2 = document.getElementById("m2");
@@ -77,38 +77,46 @@ const heli = document.getElementById("heli");
 
 let chaos, dance, helicopter;
 
-zone.onclick = start;
+zone.onclick = handleClick;
 
-function start(){
+function handleClick(){
 
-zone.onclick = null;
+// 👉 toujours actif
+if(state !== "wait") return;
+
+state = "delay";
 zone.innerHTML = "Attends...";
 
 setTimeout(()=>{
 
 zone.innerHTML = "CLIQUE !";
+let startTime = Date.now();
 
-let debut = Date.now();
+state = "click";
 
 zone.onclick = function(){
 
-let t = Date.now() - debut;
+if(state !== "click") return;
+
+state = "wait";
+
+let t = Date.now() - startTime;
 
 tour++;
 
 if(tour > 3){
-zone.innerHTML = "FIN";
+zone.innerHTML = "FIN DU SHOW";
 return;
 }
 
 tourTexte.innerHTML = "Tour "+tour+" / 3";
 
+/* ================= TOUR 2 SHOW ================= */
 if(tour == 2){
 
 zone.style.pointerEvents="none";
 
-/* ================= CHAOS + MUSIC 1 ================= */
-
+/* CHAOS + MUSIC 1 */
 imgs.forEach(i=>{
 i.style.display="block";
 i.style.left=Math.random()*window.innerWidth+"px";
@@ -130,8 +138,7 @@ img.style.top = window.innerHeight/2 + Math.sin(t1+i)*150 + "px";
 
 },16);
 
-/* ================= SANDSTORM ================= */
-
+/* SANDSTORM */
 setTimeout(()=>{
 
 clearInterval(chaos);
@@ -161,8 +168,6 @@ img.style.top = (baseY + pulse)+"px";
 img.style.transform = "rotate("+(Math.sin(step/6)*5)+"deg)";
 });
 
-/* ================= 🚁 HELICOPTER (remplace vortex) ================= */
-
 if(step > 60){
 
 clearInterval(dance);
@@ -173,7 +178,7 @@ let angle = 0;
 
 helicopter = setInterval(()=>{
 
-angle += 0.4; // 🔥 rotation rapide
+angle += 0.4;
 
 imgs.forEach((img,i)=>{
 
@@ -196,10 +201,13 @@ img.style.display="none";
 
 },5000);
 
+},3000);
+
 return;
 }
 
-zone.onclick = start;
+/* reset click */
+zone.onclick = handleClick;
 
 };
 
