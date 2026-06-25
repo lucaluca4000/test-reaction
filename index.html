@@ -64,7 +64,7 @@ img{
 <script>
 
 let tour = 1;
-let state = "ready";
+let state = "idle";
 
 const zone = document.getElementById("zone");
 const tourTexte = document.getElementById("tour");
@@ -77,28 +77,28 @@ const heli = document.getElementById("heli");
 
 let chaos, sandstorm, helicopter;
 
-zone.onclick = handleClick;
+/* =========================
+   🟢 BOUTON TOUJOURS ACTIF
+========================= */
+zone.addEventListener("click", () => {
 
-function handleClick(){
+if(state !== "idle") return;
 
-if(state !== "ready") return;
-
-state = "wait";
+state = "waiting";
 zone.innerHTML = "Attends...";
 
 setTimeout(()=>{
 
+state = "clickable";
 zone.innerHTML = "CLIQUE !";
 
-let start = Date.now();
+const start = Date.now();
 
-state = "click";
+zone.onclick = () => {
 
-zone.onclick = function(){
+if(state !== "clickable") return;
 
-if(state !== "click") return;
-
-state = "ready";
+state = "idle";
 
 tour++;
 
@@ -120,7 +120,7 @@ img.style.left=Math.random()*window.innerWidth+"px";
 img.style.top=Math.random()*window.innerHeight+"px";
 });
 
-/* ================= CHAOS MUSIC 1 ================= */
+/* ===== CHAOS ===== */
 m1.play();
 
 let t = 0;
@@ -130,13 +130,13 @@ chaos = setInterval(()=>{
 t += 0.05;
 
 imgs.forEach((img,i)=>{
-img.style.left = window.innerWidth/2 + Math.cos(t + i)*160 + "px";
-img.style.top = window.innerHeight/2 + Math.sin(t + i)*160 + "px";
+img.style.left = window.innerWidth/2 + Math.cos(t+i)*160 + "px";
+img.style.top = window.innerHeight/2 + Math.sin(t+i)*160 + "px";
 });
 
 },16);
 
-/* ================= SANDSTORM DANCE (REFEIT) ================= */
+/* ===== SANDSTORM ===== */
 setTimeout(()=>{
 
 clearInterval(chaos);
@@ -144,28 +144,26 @@ m1.pause();
 m2.play();
 
 let baseY = window.innerHeight * 0.45;
-
 let step = 0;
 
 sandstorm = setInterval(()=>{
 
 step++;
 
-let wave = Math.sin(step * 0.2) * 40;
-let shake = Math.sin(step * 0.6) * 6;
+let wave = Math.sin(step*0.2)*50;
+let shake = Math.sin(step*0.6)*5;
 
 imgs.forEach((img,i)=>{
 
-let offsetX = (i - 1.5) * 180;
-let x = window.innerWidth/2 + offsetX + wave;
+let x = window.innerWidth/2 + (i-1.5)*180 + wave;
 
-img.style.left = x + "px";
-img.style.top = baseY + shake + "px";
-img.style.transform = "rotate(" + Math.sin(step*0.1 + i)*8 + "deg)";
+img.style.left = x+"px";
+img.style.top = baseY + shake+"px";
+img.style.transform = "rotate("+Math.sin(step*0.1+i)*8+"deg)";
 
 });
 
-/* ================= HELICOPTER ================= */
+/* ===== HELICOPTER ===== */
 if(step > 80){
 
 clearInterval(sandstorm);
@@ -180,18 +178,15 @@ angle += 0.6;
 
 imgs.forEach((img,i)=>{
 
-let x = parseFloat(img.style.left);
-let y = parseFloat(img.style.top);
+let x = parseFloat(img.style.left) + Math.cos(angle+i)*15;
+let y = parseFloat(img.style.top) - 10;
 
-x += Math.cos(angle + i) * 15;
-y -= 10;
+img.style.left = x+"px";
+img.style.top = y+"px";
+img.style.transform = "rotate("+angle*30+"deg)";
 
-img.style.left = x + "px";
-img.style.top = y + "px";
-img.style.transform = "rotate(" + angle*30 + "deg)";
-
-if(y < -200 || x < -200 || x > window.innerWidth+200){
-img.style.display = "none";
+if(y < -200){
+img.style.display="none";
 }
 
 });
@@ -205,13 +200,11 @@ img.style.display = "none";
 return;
 }
 
-zone.onclick = handleClick;
-
 };
 
-},900);
+},800);
 
-}
+});
 
 </script>
 
