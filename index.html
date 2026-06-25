@@ -2,188 +2,117 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reaction Test</title>
+<title>Test de Réaction</title>
 
 <style>
-html, body {
-    margin: 0;
-    height: 100%;
-    background: black;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-family: Arial;
-    color: white;
+body{
+    font-family:Arial;
+    background:#222;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    height:100vh;
+    margin:0;
 }
 
-#btn {
-    padding: 20px 30px;
-    font-size: 22px;
-    cursor: pointer;
-    background: white;
-    color: black;
-    border: none;
-    border-radius: 10px;
+#zone{
+    width:400px;
+    height:250px;
+    background:red;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    cursor:pointer;
+    font-size:28px;
+    user-select:none;
 }
 
-#text {
-    font-size: 120px;
-    display: none;
-}
-
-#score {
-    font-size: 40px;
-    margin-top: 20px;
-    display: none;
-    text-align: center;
-}
-
-#img {
-    display: none;
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover;
-}
-
-.shake {
-    animation: shake 0.07s infinite;
-}
-
-@keyframes shake {
-    0% { transform: translate(0,0); }
-    25% { transform: translate(5px,-3px); }
-    50% { transform: translate(-5px,3px); }
-    75% { transform: translate(3px,5px); }
-    100% { transform: translate(0,0); }
+#jumpscare{
+    display:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    z-index:9999;
 }
 </style>
+
 </head>
 <body>
 
-<button id="btn">Start Reaction Test</button>
+<h1>Test de Réaction</h1>
 
-<div id="text">3</div>
-<div id="score"></div>
+<div id="zone">
+Clique pour commencer
+</div>
 
-<img id="img" src="R.jpg">
+<img id="jumpscare" src="R.jpg">
 
-<audio id="sound" preload="auto">
-    <source src="brainfart-type-beat.mp3" type="audio/mpeg">
-</audio>
+<audio id="son" src="brainfart-type-beat.mp3"></audio>
 
 <script>
-const btn = document.getElementById("btn");
-const text = document.getElementById("text");
-const score = document.getElementById("score");
-const img = document.getElementById("img");
-const sound = document.getElementById("sound");
 
-sound.volume = 1.0;
+const zone=document.getElementById("zone");
+const img=document.getElementById("jumpscare");
+const son=document.getElementById("son");
 
-let canClick = false;
-let startTime = 0;
-let timeout;
+let tour=0;
+let attente=false;
+let depart=0;
 
-let round = 0;
+zone.onclick=()=>{
 
-/* fullscreen */
-async function fs() {
-    try {
-        if (document.documentElement.requestFullscreen) {
-            await document.documentElement.requestFullscreen();
-        }
-    } catch(e) {}
-}
+    if(attente) return;
 
-/* screamer */
-function scare() {
-    img.style.display = "block";
-    document.body.classList.add("shake");
+    tour++;
 
-    sound.currentTime = 0;
-    sound.play().catch(() => {});
-}
+    // Au 3e tour : jumpscare
+    if(tour===3){
 
-/* start */
-btn.addEventListener("click", async () => {
-    btn.style.display = "none";
-    await fs();
-
-    nextRound();
-});
-
-function nextRound() {
-    round++;
-
-    text.style.display = "block";
-
-    if (round === 4) {
-        // 💀 SCREAM ROUND
-        text.textContent = "3";
-
-        let n = 3;
-
-        const countdown = setInterval(() => {
-            n--;
-
-            if (n > 0) {
-                text.textContent = n;
-            } else {
-                clearInterval(countdown);
-
-                text.textContent = "CLICK!";
-
-                setTimeout(() => {
-                    text.style.display = "none";
-                    scare();
-                }, 500);
-            }
-        }, 1000);
+        img.style.display="block";
+        son.volume=1;
+        son.play();
 
         return;
     }
 
-    // NORMAL ROUNDS
-    let n = 3;
-    text.textContent = n;
+    attente=true;
+    zone.style.background="red";
+    zone.innerHTML="Attends...";
 
-    const countdown = setInterval(() => {
-        n--;
+    let delai=Math.random()*3000+1500;
 
-        if (n > 0) {
-            text.textContent = n;
-        } else {
-            clearInterval(countdown);
+    setTimeout(()=>{
 
-            text.textContent = "Wait...";
+        zone.style.background="green";
+        zone.innerHTML="CLIQUE !";
+        depart=Date.now();
 
-            const delay = Math.random() * 3000 + 1000;
+        attente=false;
 
-            timeout = setTimeout(() => {
-                text.textContent = "CLICK!";
-                canClick = true;
-                startTime = Date.now();
-            }, delay);
-        }
-    }, 1000);
-}
+        zone.onclick=()=>{
+            let temps=Date.now()-depart;
 
-/* reaction click */
-document.addEventListener("click", () => {
-    if (!canClick) return;
+            zone.innerHTML="Ton temps : "+temps+" ms";
 
-    let reaction = Date.now() - startTime;
-    canClick = false;
+            zone.style.background="red";
 
-    text.style.display = "none";
+            zone.onclick=arguments.callee.caller;
 
-    score.style.display = "block";
-    score.textContent = "Temps : " + reaction + " ms";
+            setTimeout(()=>{
+                zone.innerHTML="Clique pour le tour suivant";
+            },1500);
 
-    setTimeout(nextRound, 1200);
-});
+        };
+
+    },delai);
+
+};
+
 </script>
 
 </body>
