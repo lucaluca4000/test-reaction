@@ -6,29 +6,30 @@
 
 <style>
 body{
-    margin:0;
-    background:#111;
-    color:white;
-    font-family:Arial;
-    overflow:hidden;
-    text-align:center;
+margin:0;
+overflow:hidden;
+background:#111;
+font-family:Arial;
+color:white;
+text-align:center;
 }
 
 #zone{
-    width:100vw;
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:40px;
-    cursor:pointer;
+width:100vw;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:45px;
+cursor:pointer;
+user-select:none;
 }
 
 .img{
-    position:absolute;
-    width:140px;
-    transition:2s;
-    display:none;
+position:absolute;
+width:140px;
+display:none;
+transition:.5s;
 }
 </style>
 </head>
@@ -44,158 +45,4 @@ body{
 
 <audio id="brain" src="brainfart-type-beat.mp3"></audio>
 <audio id="sand" src="sandstorm.mp3"></audio>
-<audio id="heli" src="helicopter-helicopter.mp3"></audio>
-
-<script>
-
-const zone=document.getElementById("zone");
-const imgs=document.querySelectorAll(".img");
-
-let tour=0;
-let attente=false;
-let debut=0;
-
-zone.onclick=()=>{
-
-if(tour==0){
-nouveauTour();
-return;
-}
-
-if(attente){
-let temps=Date.now()-debut;
-attente=false;
-tour++;
-
-if(tour==2){
-zone.innerHTML="Réaction : "+temps+" ms";
-setTimeout(delire,1000);
-}else if(tour<=3){
-zone.innerHTML="Réaction : "+temps+" ms";
-setTimeout(nouveauTour,1500);
-}else{
-zone.innerHTML="FIN";
-}
-}
-
-}
-
-function nouveauTour(){
-
-zone.style.background="#111";
-zone.innerHTML="Attends...";
-
-setTimeout(()=>{
-
-zone.style.background="lime";
-zone.innerHTML="CLIQUE !";
-
-attente=true;
-debut=Date.now();
-
-},1000+Math.random()*3000);
-
-}
-
-function delire(){
-
-document.getElementById("brain").play();
-
-zone.innerHTML="😵";
-
-imgs.forEach(img=>{
-img.style.display="block";
-});
-
-let angle=0;
-
-let balade=setInterval(()=>{
-
-angle+=3;
-
-imgs.forEach(img=>{
-img.style.left=Math.random()*(window.innerWidth-150)+"px";
-img.style.top=Math.random()*(window.innerHeight-150)+"px";
-img.style.transform="rotate("+angle+"deg)";
-});
-
-},500);
-
-setTimeout(()=>{
-
-clearInterval(balade);
-
-document.getElementById("brain").pause();
-
-const sand=document.getElementById("sand");
-sand.play();
-
-imgs.forEach((img,i)=>{
-img.style.top="45%";
-img.style.left=(15+i*20)+"%";
-});
-
-let t=0;
-
-let danse=setInterval(()=>{
-
-t++;
-
-imgs.forEach((img,i)=>{
-
-let x=Math.sin(t/5+i)*120;
-let y=Math.cos(t/3+i)*35;
-
-img.style.transform=
-"translate("+x+"px,"+y+"px)";
-
-});
-
-},40);
-
-setTimeout(()=>{
-
-clearInterval(danse);
-
-sand.pause();
-
-const heli=document.getElementById("heli");
-heli.play();
-
-let y=window.innerHeight/2;
-
-let envol=setInterval(()=>{
-
-y-=8;
-
-imgs.forEach((img,i)=>{
-
-img.style.top=y+"px";
-
-img.style.transform=
-"rotate("+(Date.now()/2)+"deg)";
-
-});
-
-if(y<-300){
-
-clearInterval(envol);
-
-imgs.forEach(img=>img.remove());
-
-setTimeout(nouveauTour,500);
-
-}
-
-},20);
-
-},8000);
-
-},7000);
-
-}
-
-</script>
-
-</body>
-</htm
+<audio id="heli" src="
