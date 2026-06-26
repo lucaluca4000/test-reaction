@@ -2,47 +2,172 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Test de réaction</title>
 
 <style>
-body{
+
+*{
 margin:0;
-overflow:hidden;
-background:#111;
-font-family:Arial;
-color:white;
-text-align:center;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,Helvetica,sans-serif;
 }
 
-#zone{
+body{
+background:#d32f2f;
+overflow:hidden;
+user-select:none;
+transition:background .3s;
+}
+
+#game{
 width:100vw;
 height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
-font-size:45px;
+flex-direction:column;
 cursor:pointer;
-user-select:none;
 }
 
-.img{
+#title{
+font-size:60px;
+font-weight:bold;
+color:white;
+margin-bottom:25px;
+text-align:center;
+}
+
+#text{
+font-size:30px;
+color:white;
+text-align:center;
+max-width:90%;
+}
+
+#score{
+position:absolute;
+top:20px;
+left:20px;
+font-size:24px;
+color:white;
+}
+
+#best{
+position:absolute;
+top:55px;
+left:20px;
+font-size:22px;
+color:white;
+}
+
+#average{
+position:absolute;
+top:90px;
+left:20px;
+font-size:22px;
+color:white;
+}
+
+img.party{
 position:absolute;
 width:140px;
 display:none;
-transition:.5s;
+pointer-events:none;
+transition:.3s;
 }
+
+.confetti{
+position:absolute;
+width:12px;
+height:12px;
+pointer-events:none;
+}
+
+.shake{
+animation:shake .15s infinite;
+}
+
+@keyframes shake{
+0%{transform:translate(0,0);}
+25%{transform:translate(-3px,3px);}
+50%{transform:translate(3px,-3px);}
+75%{transform:translate(-3px,-3px);}
+100%{transform:translate(3px,3px);}
+}
+
+@keyframes rainbow{
+0%{background:#ff0000;}
+16%{background:#ff7f00;}
+33%{background:#ffff00;}
+50%{background:#00ff00;}
+66%{background:#00ffff;}
+83%{background:#0000ff;}
+100%{background:#ff00ff;}
+}
+
+.rainbow{
+animation:rainbow .4s infinite;
+}
+
 </style>
+
 </head>
 
 <body>
 
-<div id="zone">Clique pour commencer</div>
+<div id="score">Essais : 0</div>
+<div id="best">Meilleur : --</div>
+<div id="average">Moyenne : --</div>
 
-<img src="moi.png" class="img">
-<img src="toi.webp" class="img">
-<img src="roi.jpeg" class="img">
-<img src="R.jpg" class="img">
+<div id="game">
+
+<div id="title">
+TEST DE RÉACTION
+</div>
+
+<div id="text">
+Clique pour commencer
+</div>
+
+</div>
+
+<img src="moi.png" class="party">
+<img src="toi.webp" class="party">
+<img src="roi.jpeg" class="party">
+<img src="R.jpg" class="party">
 
 <audio id="brain" src="brainfart-type-beat.mp3"></audio>
 <audio id="sand" src="sandstorm.mp3"></audio>
-<audio id="heli" src="
+<audio id="heli" src="helicopter-helicopter.mp3"></audio>
+
+<script>
+
+const game=document.getElementById("game");
+const text=document.getElementById("text");
+const title=document.getElementById("title");
+
+const score=document.getElementById("score");
+const best=document.getElementById("best");
+const average=document.getElementById("average");
+
+const imgs=document.querySelectorAll(".party");
+
+const brain=document.getElementById("brain");
+const sand=document.getElementById("sand");
+const heli=document.getElementById("heli");
+
+let started=false;
+let waiting=false;
+let green=false;
+
+let startTime=0;
+
+let essais=0;
+let meilleur=999999;
+let somme=0;
+
+let party=false;
+
+let timeout;
