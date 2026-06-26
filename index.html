@@ -1,405 +1,268 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Test de reaction</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Réaction Ultime</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
 
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(180deg, #111, #1d1d1d);
-      color: white;
-      overflow: hidden;
-      height: 100vh;
-    }
+        #game-zone {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.1s ease;
+        }
 
-    #game {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-    }
+        .waiting { background-color: #ce2029; } /* Rouge attente */
+        .click-now { background-color: #228b22; } /* Vert clic */
+        .neutral { background-color: #121212; }
 
-    .center-ui {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 20px;
-      text-align: center;
-      padding: 20px;
-      z-index: 20;
-    }
+        #instruction {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            pointer-events: none;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+        }
 
-    h1 {
-      font-size: 2rem;
-    }
+        /* --- Zone des images de la fête --- */
+        #party-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: none;
+        }
 
-    p {
-      font-size: 1.1rem;
-      max-width: 700px;
-      line-height: 1.5;
-    }
+        .party-img {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: transform 0.1s linear;
+        }
 
-    button {
-      padding: 14px 28px;
-      border: none;
-      border-radius: 14px;
-      background: #00c853;
-      color: white;
-      font-size: 1.1rem;
-      font-weight: bold;
-      cursor: pointer;
-      transition: transform 0.15s, background 0.2s;
-    }
+        /* Classes d'animations gérées via JS et CSS */
+        .dance {
+            animation: bounce 0.5s infinite alternate ease-in-out, rainbow-glow 1s infinite alternate;
+        }
 
-    button:hover {
-      transform: scale(1.05);
-      background: #00b34a;
-    }
+        @keyframes bounce {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-30px) scale(1.1); }
+        }
 
-    #status {
-      font-size: 1.3rem;
-      font-weight: bold;
-      min-height: 32px;
-    }
-
-    #reactionBtn {
-      display: none;
-      position: absolute;
-      z-index: 15;
-      left: 50%;
-      top: 65%;
-      transform: translate(-50%, -50%);
-      background: #ff1744;
-      padding: 20px 36px;
-      font-size: 1.3rem;
-    }
-
-    #reactionBtn.show {
-      display: block;
-      animation: pop 0.2s ease;
-    }
-
-    @keyframes pop {
-      from {
-        transform: translate(-50%, -50%) scale(0.7);
-      }
-      to {
-        transform: translate(-50%, -50%) scale(1);
-      }
-    }
-
-    #arena {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      z-index: 5;
-      pointer-events: none;
-    }
-
-    .sprite {
-      position: absolute;
-      width: 140px;
-      height: 140px;
-      object-fit: cover;
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
-      transition: left 1s ease, top 1s ease, transform 1s ease;
-      opacity: 0;
-    }
-
-    .visible {
-      opacity: 1;
-    }
-
-    #resultBox {
-      position: absolute;
-      left: 50%;
-      top: 12%;
-      transform: translateX(-50%);
-      z-index: 20;
-      background: rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.15);
-      padding: 12px 18px;
-      border-radius: 14px;
-      display: none;
-      font-size: 1rem;
-      text-align: center;
-      backdrop-filter: blur(6px);
-    }
-
-    .small {
-      font-size: 0.95rem;
-      opacity: 0.9;
-    }
-
-    .hide {
-      display: none !important;
-    }
-  </style>
+        @keyframes rainbow-glow {
+            0% { box-shadow: 0 0 20px #ff0000; }
+            33% { box-shadow: 0 0 20px #00ff00; }
+            66% { box-shadow: 0 0 20px #0000ff; }
+            100% { box-shadow: 0 0 20px #ffff00; }
+        }
+    </style>
 </head>
 <body>
-  <div id="game">
-    <div id="resultBox"></div>
 
-    <div class="center-ui" id="menu">
-      <h1>Test de reaction - 3 tours</h1>
-      <p>
-        Clique sur <strong>CLIQUE !</strong> le plus vite possible quand il apparait.
-        Mais au 2e tour... ca part en vrille.
-      </p>
-      <button id="startBtn">Commencer</button>
-      <div id="status"></div>
-      <p class="small">Astuce: sur mobile, mets le son.</p>
+    <div id="game-zone" class="neutral">
+        <div id="instruction">Cliquez ici pour commencer le test de réaction (3 tours)</div>
     </div>
 
-    <button id="reactionBtn">CLIQUE !</button>
-
-    <div id="arena">
-      <img src="moi.png" id="img1" class="sprite" alt="moi" />
-      <img src="roi.jpeg" id="img2" class="sprite" alt="roi" />
-      <img src="toi.webp" id="img3" class="sprite" alt="toi" />
+    <div id="party-container">
+        <img src="R.jpg" class="party-img" id="img1" alt="R">
+        <img src="moi.png" class="party-img" id="img2" alt="moi">
+        <img src="roi.jpeg" class="party-img" id="img3" alt="roi">
+        <img src="toi.webp" class="party-img" id="img4" alt="toi">
     </div>
 
-    <audio id="brainfart" src="brainfart-type-beat.mp3"></audio>
-    <audio id="sandstorm" src="sandstorm.mp3"></audio>
-    <audio id="helico" src="helicopter-helicopter.mp3"></audio>
-  </div>
+    <audio id="snd-brainfart" src="brainfart-type-beat.mp3" loop></audio>
+    <audio id="snd-sandstorm" src="sandstorm.mp3" loop></audio>
+    <audio id="snd-helicopter" src="helicopter-helicopter.mp3" loop></audio>
 
-  <script>
-    const startBtn = document.getElementById("startBtn");
-    const menu = document.getElementById("menu");
-    const statusText = document.getElementById("status");
-    const reactionBtn = document.getElementById("reactionBtn");
-    const resultBox = document.getElementById("resultBox");
+    <script>
+        const gameZone = document.getElementById('game-zone');
+        const instruction = document.getElementById('instruction');
+        const partyContainer = document.getElementById('party-container');
+        const images = document.querySelectorAll('.party-img');
 
-    const brainfart = document.getElementById("brainfart");
-    const sandstorm = document.getElementById("sandstorm");
-    const helico = document.getElementById("helico");
+        // Sons
+        const sndBrainfart = document.getElementById('snd-brainfart');
+        const sndSandstorm = document.getElementById('snd-sandstorm');
+        const sndHelicopter = document.getElementById('snd-helicopter');
 
-    const sprites = [
-      document.getElementById("img1"),
-      document.getElementById("img2"),
-      document.getElementById("img3")
-    ];
+        let tour = 1;
+        let state = "START"; // START, WAITING, CLICKABLE, BREAK
+        let startTime, timerTimeout;
 
-    let currentRound = 1;
-    let startTime = 0;
-    let waiting = false;
-    let moveInterval = null;
-    let spinInterval = null;
-    let danceInterval = null;
-    let helicopterInterval = null;
-    const scores = [];
+        // Variables pour l'étape 1 du chaos (Mouvement lent)
+        let positions = [];
+        let chaosInterval;
 
-    function random(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
+        gameZone.addEventListener('click', () => {
+            if (state === "START" || state === "BREAK") {
+                if (tour <= 3) {
+                    startRound();
+                } else {
+                    instruction.innerHTML = "Test terminé ! Rafraîchis la page pour recommencer.";
+                }
+            } else if (state === "WAITING") {
+                clearTimeout(timerTimeout);
+                gameZone.className = "neutral";
+                instruction.innerHTML = "Trop tôt ! Cliquez pour réessayer ce tour.";
+                state = "BREAK";
+            } else if (state === "CLICKABLE") {
+                let reactionTime = Date.now() - startTime;
+                gameZone.className = "neutral";
+                
+                if (tour === 2) {
+                    // Au tour 2, le clic déclenche le chaos !
+                    state = "PARTY";
+                    instruction.innerHTML = "AIE REACTION PARFAITE ! REGARDE CA !";
+                    triggerChaos();
+                } else {
+                    instruction.innerHTML = `Temps de réaction : ${reactionTime}ms.<br>Cliquez pour le tour suivant.`;
+                    tour++;
+                    state = "BREAK";
+                    if(tour > 3) {
+                        instruction.innerHTML = `Test fini ! Score final enregistré.<br>Merci d'avoir joué !`;
+                    }
+                }
+            }
+        });
 
-    function stopAllSounds() {
-      [brainfart, sandstorm, helico].forEach(a => {
-        a.pause();
-        a.currentTime = 0;
-      });
-    }
+        function startRound() {
+            instruction.innerHTML = `Tour ${tour} : Attendez le VERT...`;
+            gameZone.className = "waiting";
+            state = "WAITING";
 
-    function showResult(text) {
-      resultBox.style.display = "block";
-      resultBox.innerHTML = text;
-    }
-
-    function placeSprite(el, x, y, rotate = 0, scale = 1) {
-      el.style.left = x + "px";
-      el.style.top = y + "px";
-      el.style.transform = `rotate(${rotate}deg) scale(${scale})`;
-    }
-
-    function showSprites() {
-      sprites.forEach((img, i) => {
-        img.classList.add("visible");
-        placeSprite(
-          img,
-          40 + i * 120,
-          180 + i * 40,
-          0,
-          1
-        );
-      });
-    }
-
-    function hideSprites() {
-      sprites.forEach(img => {
-        img.classList.remove("visible");
-        img.style.transform = "rotate(0deg) scale(1)";
-      });
-    }
-
-    function startRound(round) {
-      waiting = true;
-      reactionBtn.classList.remove("show");
-      statusText.textContent = `Tour ${round}/3 - Prepare-toi...`;
-
-      const delay = random(1200, 3000);
-
-      setTimeout(() => {
-        if (round !== 2) {
-          reactionBtn.classList.add("show");
-          statusText.textContent = `Tour ${round}/3 - Clique maintenant !`;
-          startTime = performance.now();
-          waiting = false;
-        } else {
-          startTrollRound();
+            let randomDelay = Math.random() * 2000 + 1500; // Entre 1.5 et 3.5 secondes
+            timerTimeout = setTimeout(() => {
+                gameZone.className = "click-now";
+                instruction.innerHTML = "CLIQUEZ MAINTENANT !";
+                startTime = Date.now();
+                state = "CLICKABLE";
+            }, randomDelay);
         }
-      }, delay);
-    }
 
-    reactionBtn.addEventListener("click", () => {
-      if (waiting) return;
-
-      const reaction = Math.round(performance.now() - startTime);
-      scores.push(reaction);
-      reactionBtn.classList.remove("show");
-
-      if (currentRound < 3) {
-        statusText.textContent = `Tour ${currentRound} termine: ${reaction} ms`;
-        currentRound++;
-        setTimeout(() => startRound(currentRound), 1400);
-      } else {
-        statusText.textContent = `Tour 3 termine: ${reaction} ms`;
-        const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
-        showResult(`
-          <strong>Partie finie</strong><br>
-          Scores: ${scores.map(s => s + " ms").join(" | ")}<br>
-          Moyenne: ${avg} ms
-        `);
-        startBtn.classList.remove("hide");
-        startBtn.textContent = "Rejouer";
-      }
-    });
-
-    function startTrollRound() {
-      statusText.textContent = "Tour 2/3 - Oh non...";
-      showSprites();
-
-      stopAllSounds();
-      brainfart.play().catch(() => {});
-
-      let angle = 0;
-
-      moveInterval = setInterval(() => {
-        angle += 12;
-        sprites.forEach((img, i) => {
-          const x = random(0, window.innerWidth - 150);
-          const y = random(80, window.innerHeight - 180);
-          const rot = angle + i * 30;
-          const scale = 0.85 + Math.random() * 0.45;
-          placeSprite(img, x, y, rot, scale);
-        });
-      }, 650);
-
-      setTimeout(() => {
-        clearInterval(moveInterval);
-        brainfart.pause();
-        brainfart.currentTime = 0;
-
-        sandstorm.play().catch(() => {});
-        statusText.textContent = "Sandstorm mode active";
-
-        const centerY = Math.max(120, Math.floor(window.innerHeight * 0.45));
-        const gap = Math.min(220, Math.floor(window.innerWidth / 4));
-
-        sprites.forEach((img, i) => {
-          const x = window.innerWidth / 2 - 70 + (i - 1) * gap;
-          placeSprite(img, x, centerY, 0, 1);
-        });
-
-        let beat = 0;
-        danceInterval = setInterval(() => {
-          beat++;
-          sprites.forEach((img, i) => {
-            const x = window.innerWidth / 2 - 70 + (i - 1) * gap;
-            const y = centerY + Math.sin((beat + i) * 0.9) * 30;
-            const rot = Math.sin((beat + i) * 0.9) * 18;
-            const scale = 1 + Math.abs(Math.sin((beat + i) * 0.9)) * 0.2;
-            placeSprite(img, x, y, rot, scale);
-          });
-        }, 120);
-
-        setTimeout(() => {
-          clearInterval(danceInterval);
-          sandstorm.pause();
-          sandstorm.currentTime = 0;
-
-          helico.play().catch(() => {});
-          statusText.textContent = "HELICOPTER HELICOPTER";
-
-          let fly = 0;
-          helicopterInterval = setInterval(() => {
-            fly += 10;
-            sprites.forEach((img, i) => {
-              const baseX = window.innerWidth / 2 - 70 + (i - 1) * 180;
-              const x = baseX + Math.sin((fly + i * 25) * 0.08) * 60;
-              const y = centerY - fly - i * 40;
-              const rot = fly * 2.8;
-              const scale = Math.max(0.5, 1 - fly / 900);
-              placeSprite(img, x, y, rot, scale);
+        // --- LA TOURNÉE DU CHAOS (TOUR 2) ---
+        function triggerChaos() {
+            partyContainer.style.display = 'block';
+            
+            // Initialisation des positions aléatoires des images
+            images.forEach((img, index) => {
+                positions[index] = {
+                    x: Math.random() * (window.innerWidth - 150),
+                    y: Math.random() * (window.innerHeight - 150),
+                    dx: (Math.random() - 0.5) * 4,
+                    dy: (Math.random() - 0.5) * 4,
+                    angle: 0
+                };
             });
 
-            if (fly > window.innerHeight + 250) {
-              clearInterval(helicopterInterval);
-              helico.pause();
-              helico.currentTime = 0;
-              hideSprites();
+            // 1. Lancement de Brainfart + mouvement lent partout
+            sndBrainfart.play();
+            
+            chaosInterval = setInterval(() => {
+                images.forEach((img, index) => {
+                    let pos = positions[index];
+                    pos.x += pos.dx;
+                    pos.y += pos.dy;
+                    pos.angle += 0.5; // Rotation lente
 
-              const fakeScore = random(1, 12);
-              scores.push(fakeScore);
+                    // Rebond sur les bords de l'écran
+                    if (pos.x <= 0 || pos.x >= window.innerWidth - 120) pos.dx *= -1;
+                    if (pos.y <= 0 || pos.y >= window.innerHeight - 120) pos.dy *= -1;
 
-              showResult(`
-                <strong>Tour 2 termine</strong><br>
-                Score totalement truque: ${fakeScore} ms<br>
-                Le jeu a decide que tu es trop fort.
-              `);
+                    img.style.left = pos.x + 'px';
+                    img.style.top = pos.y + 'px';
+                    img.style.transform = `rotate(${pos.angle}deg)`;
+                });
+            }, 16);
 
-              currentRound = 3;
-              setTimeout(() => {
-                resultBox.style.display = "none";
-                startRound(3);
-              }, 1800);
-            }
-          }, 50);
-        }, 6500);
-      }, 5000);
-    }
+            // 2. Transition vers Sandstorm après 6 secondes
+            setTimeout(() => {
+                clearInterval(chaosInterval);
+                sndBrainfart.pause();
+                sndSandstorm.play();
+                
+                // Alignement au centre vertical, espacés horizontalement
+                let centerY = window.innerHeight / 2 - 60;
+                let spacing = window.innerWidth / 5;
 
-    startBtn.addEventListener("click", () => {
-      stopAllSounds();
-      clearInterval(moveInterval);
-      clearInterval(spinInterval);
-      clearInterval(danceInterval);
-      clearInterval(helicopterInterval);
+                images.forEach((img, index) => {
+                    let targetX = spacing * (index + 1) - 60;
+                    img.style.transition = "all 1s ease-in-out";
+                    img.style.left = targetX + 'px';
+                    img.style.top = centerY + 'px';
+                    img.style.transform = "rotate(0deg)";
+                    
+                    // Ajout de la danse synchronisée après l'alignement
+                    setTimeout(() => {
+                        img.classList.add('dance');
+                    }, 1000);
+                });
 
-      scores.length = 0;
-      currentRound = 1;
-      waiting = false;
+            }, 6000);
 
-      hideSprites();
-      resultBox.style.display = "none";
-      startBtn.classList.add("hide");
-      statusText.textContent = "";
-      reactionBtn.classList.remove("show");
+            // 3. Transition vers Hélicoptère après 12 secondes total
+            setTimeout(() => {
+                // Retrait de la danse Sandstorm
+                images.forEach(img => img.classList.remove('dance'));
+                sndSandstorm.pause();
+                sndHelicopter.play();
 
-      startRound(1);
-    });
-  </script>
+                let angleHelico = 0;
+                let altitude = window.innerHeight / 2 - 60;
+                let speed = 0;
+
+                let heliInterval = setInterval(() => {
+                    angleHelico += 25; // Tourne super vite comme un hélico
+                    speed += 0.3;      // Accélération vers le haut
+                    altitude -= speed;
+
+                    images.forEach((img, index) => {
+                        // Conserve le X aligné mais change l'angle et l'altitude
+                        let currentLeft = parseFloat(img.style.left);
+                        img.style.transition = "none";
+                        img.style.transform = `rotate(${angleHelico}deg)`;
+                        img.style.top = altitude + 'px';
+                    });
+
+                    // Arrêt du script quand elles sont loin hors du cadre
+                    if (altitude < -200) {
+                        clearInterval(heliInterval);
+                        partyContainer.style.display = 'none';
+                        sndHelicopter.pause();
+                        
+                        // Retour au jeu normal pour le Tour 3
+                        tour = 3;
+                        state = "BREAK";
+                        instruction.innerHTML = "Ouf... Quel délire. Cliquez pour passer au Tour 3 (Dernier tour).";
+                    }
+                }, 16);
+
+            }, 13000);
+        }
+    </script>
 </body>
 </html>
