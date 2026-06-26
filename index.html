@@ -64,205 +64,24 @@
             transition: transform 0.1s linear;
         }
 
-        /* Classes d'animations gérées via JS et CSS */
+        /* --- DANSE SANDSTORM ULTRA MOUVEMENTÉE --- */
         .dance {
-            animation: bounce 0.5s infinite alternate ease-in-out, rainbow-glow 1s infinite alternate;
+            animation: ultra-dance 0.3s infinite alternate ease-in-out, rainbow-glow 0.5s infinite alternate;
         }
 
-        @keyframes bounce {
-            0% { transform: translateY(0) scale(1); }
-            100% { transform: translateY(-30px) scale(1.1); }
+        @keyframes ultra-dance {
+            0% { 
+                transform: translateY(0) scale(0.9) rotate(-15deg); 
+            }
+            50% {
+                transform: scale(1.2) rotate(0deg);
+            }
+            100% { 
+                transform: translateY(-60px) scale(0.9) rotate(15deg); 
+            }
         }
 
         @keyframes rainbow-glow {
-            0% { box-shadow: 0 0 20px #ff0000; }
-            33% { box-shadow: 0 0 20px #00ff00; }
-            66% { box-shadow: 0 0 20px #0000ff; }
-            100% { box-shadow: 0 0 20px #ffff00; }
-        }
-    </style>
-</head>
-<body>
-
-    <div id="game-zone" class="neutral">
-        <div id="instruction">Cliquez ici pour commencer le test de réaction (3 tours)</div>
-    </div>
-
-    <div id="party-container">
-        <img src="R.jpg" class="party-img" id="img1" alt="R">
-        <img src="moi.png" class="party-img" id="img2" alt="moi">
-        <img src="roi.jpeg" class="party-img" id="img3" alt="roi">
-        <img src="toi.webp" class="party-img" id="img4" alt="toi">
-    </div>
-
-    <audio id="snd-brainfart" src="brainfart-type-beat.mp3" loop></audio>
-    <audio id="snd-sandstorm" src="sandstorm.mp3" loop></audio>
-    <audio id="snd-helicopter" src="helicopter-helicopter.mp3" loop></audio>
-
-    <script>
-        const gameZone = document.getElementById('game-zone');
-        const instruction = document.getElementById('instruction');
-        const partyContainer = document.getElementById('party-container');
-        const images = document.querySelectorAll('.party-img');
-
-        // Sons
-        const sndBrainfart = document.getElementById('snd-brainfart');
-        const sndSandstorm = document.getElementById('snd-sandstorm');
-        const sndHelicopter = document.getElementById('snd-helicopter');
-
-        let tour = 1;
-        let state = "START"; // START, WAITING, CLICKABLE, BREAK
-        let startTime, timerTimeout;
-
-        // Variables pour l'étape 1 du chaos (Mouvement lent)
-        let positions = [];
-        let chaosInterval;
-
-        gameZone.addEventListener('click', () => {
-            if (state === "START" || state === "BREAK") {
-                if (tour <= 3) {
-                    startRound();
-                } else {
-                    instruction.innerHTML = "Test terminé ! Rafraîchis la page pour recommencer.";
-                }
-            } else if (state === "WAITING") {
-                clearTimeout(timerTimeout);
-                gameZone.className = "neutral";
-                instruction.innerHTML = "Trop tôt ! Cliquez pour réessayer ce tour.";
-                state = "BREAK";
-            } else if (state === "CLICKABLE") {
-                let reactionTime = Date.now() - startTime;
-                gameZone.className = "neutral";
-                
-                if (tour === 2) {
-                    // Au tour 2, le clic déclenche le chaos !
-                    state = "PARTY";
-                    instruction.innerHTML = "AIE REACTION PARFAITE ! REGARDE CA !";
-                    triggerChaos();
-                } else {
-                    instruction.innerHTML = `Temps de réaction : ${reactionTime}ms.<br>Cliquez pour le tour suivant.`;
-                    tour++;
-                    state = "BREAK";
-                    if(tour > 3) {
-                        instruction.innerHTML = `Test fini ! Score final enregistré.<br>Merci d'avoir joué !`;
-                    }
-                }
-            }
-        });
-
-        function startRound() {
-            instruction.innerHTML = `Tour ${tour} : Attendez le VERT...`;
-            gameZone.className = "waiting";
-            state = "WAITING";
-
-            let randomDelay = Math.random() * 2000 + 1500; // Entre 1.5 et 3.5 secondes
-            timerTimeout = setTimeout(() => {
-                gameZone.className = "click-now";
-                instruction.innerHTML = "CLIQUEZ MAINTENANT !";
-                startTime = Date.now();
-                state = "CLICKABLE";
-            }, randomDelay);
-        }
-
-        // --- LA TOURNÉE DU CHAOS (TOUR 2) ---
-        function triggerChaos() {
-            partyContainer.style.display = 'block';
-            
-            // Initialisation des positions aléatoires des images
-            images.forEach((img, index) => {
-                positions[index] = {
-                    x: Math.random() * (window.innerWidth - 150),
-                    y: Math.random() * (window.innerHeight - 150),
-                    dx: (Math.random() - 0.5) * 4,
-                    dy: (Math.random() - 0.5) * 4,
-                    angle: 0
-                };
-            });
-
-            // 1. Lancement de Brainfart + mouvement lent partout
-            sndBrainfart.play();
-            
-            chaosInterval = setInterval(() => {
-                images.forEach((img, index) => {
-                    let pos = positions[index];
-                    pos.x += pos.dx;
-                    pos.y += pos.dy;
-                    pos.angle += 0.5; // Rotation lente
-
-                    // Rebond sur les bords de l'écran
-                    if (pos.x <= 0 || pos.x >= window.innerWidth - 120) pos.dx *= -1;
-                    if (pos.y <= 0 || pos.y >= window.innerHeight - 120) pos.dy *= -1;
-
-                    img.style.left = pos.x + 'px';
-                    img.style.top = pos.y + 'px';
-                    img.style.transform = `rotate(${pos.angle}deg)`;
-                });
-            }, 16);
-
-            // 2. Transition vers Sandstorm après 6 secondes
-            setTimeout(() => {
-                clearInterval(chaosInterval);
-                sndBrainfart.pause();
-                sndSandstorm.play();
-                
-                // Alignement au centre vertical, espacés horizontalement
-                let centerY = window.innerHeight / 2 - 60;
-                let spacing = window.innerWidth / 5;
-
-                images.forEach((img, index) => {
-                    let targetX = spacing * (index + 1) - 60;
-                    img.style.transition = "all 1s ease-in-out";
-                    img.style.left = targetX + 'px';
-                    img.style.top = centerY + 'px';
-                    img.style.transform = "rotate(0deg)";
-                    
-                    // Ajout de la danse synchronisée après l'alignement
-                    setTimeout(() => {
-                        img.classList.add('dance');
-                    }, 1000);
-                });
-
-            }, 6000);
-
-            // 3. Transition vers Hélicoptère après 12 secondes total
-            setTimeout(() => {
-                // Retrait de la danse Sandstorm
-                images.forEach(img => img.classList.remove('dance'));
-                sndSandstorm.pause();
-                sndHelicopter.play();
-
-                let angleHelico = 0;
-                let altitude = window.innerHeight / 2 - 60;
-                let speed = 0;
-
-                let heliInterval = setInterval(() => {
-                    angleHelico += 25; // Tourne super vite comme un hélico
-                    speed += 0.3;      // Accélération vers le haut
-                    altitude -= speed;
-
-                    images.forEach((img, index) => {
-                        // Conserve le X aligné mais change l'angle et l'altitude
-                        let currentLeft = parseFloat(img.style.left);
-                        img.style.transition = "none";
-                        img.style.transform = `rotate(${angleHelico}deg)`;
-                        img.style.top = altitude + 'px';
-                    });
-
-                    // Arrêt du script quand elles sont loin hors du cadre
-                    if (altitude < -200) {
-                        clearInterval(heliInterval);
-                        partyContainer.style.display = 'none';
-                        sndHelicopter.pause();
-                        
-                        // Retour au jeu normal pour le Tour 3
-                        tour = 3;
-                        state = "BREAK";
-                        instruction.innerHTML = "Ouf... Quel délire. Cliquez pour passer au Tour 3 (Dernier tour).";
-                    }
-                }, 16);
-
-            }, 13000);
-        }
-    </script>
-</body>
-</html>
+            0% { box-shadow: 0 0 30px #ff0000; filter: hue-rotate(0deg); }
+            50% { box-shadow: 0 0 45px #00ff00; }
+            100% { box-shadow: 0 0 30px #0000ff; filter: hue-
