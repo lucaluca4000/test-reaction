@@ -7,212 +7,195 @@
 <style>
 body{
     margin:0;
+    background:#111;
+    color:white;
+    font-family:Arial;
+    overflow:hidden;
+    text-align:center;
+}
+
+#zone{
+    width:100vw;
     height:100vh;
     display:flex;
     justify-content:center;
     align-items:center;
-    flex-direction:column;
-    background:#222;
-    color:white;
-    font-family:Arial;
-    overflow:hidden;
-}
-
-#zone{
-    width:420px;
-    height:220px;
-    background:#d32f2f;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:30px;
+    font-size:40px;
     cursor:pointer;
-    border-radius:15px;
-    user-select:none;
 }
 
-#tour{
-    margin-bottom:20px;
-    font-size:24px;
-}
-
-img{
-    position:fixed;
-    width:160px;
-    height:160px;
+.img{
+    position:absolute;
+    width:140px;
+    transition:2s;
     display:none;
-    left:50%;
-    top:50%;
-    transform:translate(-50%,-50%);
 }
 </style>
 </head>
 
 <body>
 
-<h1>Test de réaction</h1>
-<div id="tour">Tour 1 / 3</div>
-<div id="zone">CLIQUE</div>
+<div id="zone">Clique pour commencer</div>
 
-<img src="R.jpg" id="i1">
-<img src="moi.png" id="i2">
-<img src="roi.jpeg" id="i3">
-<img src="toi.webp" id="i4">
+<img src="moi.png" class="img">
+<img src="toi.webp" class="img">
+<img src="roi.jpeg" class="img">
+<img src="R.jpg" class="img">
 
-<audio id="m1" src="brainfart-type-beat.mp3"></audio>
-<audio id="m2" src="sandstorm.mp3"></audio>
-<audio id="m3" src="helicopter-helicopter.mp3"></audio>
+<audio id="brain" src="brainfart-type-beat.mp3"></audio>
+<audio id="sand" src="sandstorm.mp3"></audio>
+<audio id="heli" src="helicopter-helicopter.mp3"></audio>
 
 <script>
 
-/* =========================
-   VARIABLES SIMPLES
-========================= */
-let tour = 1;
-let state = "idle"; // idle | wait | click | anim
+const zone=document.getElementById("zone");
+const imgs=document.querySelectorAll(".img");
 
-const zone = document.getElementById("zone");
-const tourTxt = document.getElementById("tour");
+let tour=0;
+let attente=false;
+let debut=0;
 
-const imgs = [
-document.getElementById("i1"),
-document.getElementById("i2"),
-document.getElementById("i3"),
-document.getElementById("i4")
-];
+zone.onclick=()=>{
 
-const m1 = document.getElementById("m1");
-const m2 = document.getElementById("m2");
-const m3 = document.getElementById("m3");
-
-let chaos, sandstorm, helicopter;
-
-/* =========================
-   🟢 CLICK SYSTEM ULTRA STABLE
-========================= */
-zone.addEventListener("click", () => {
-
-if(state !== "idle") return;
-
-state = "wait";
-zone.innerHTML = "Attends...";
-
-setTimeout(() => {
-
-state = "click";
-zone.innerHTML = "CLIQUE !";
-
-zone.onclick = () => {
-
-if(state !== "click") return;
-
-state = "idle";
-
-tour++;
-
-if(tour > 3){
-zone.innerHTML = "FIN DU TEST";
+if(tour==0){
+nouveauTour();
 return;
 }
 
-tourTxt.innerHTML = "Tour " + tour + " / 3";
+if(attente){
+let temps=Date.now()-debut;
+attente=false;
+tour++;
 
-/* =========================
-   🎮 TOUR 2
-========================= */
-if(tour === 2){
+if(tour==2){
+zone.innerHTML="Réaction : "+temps+" ms";
+setTimeout(delire,1000);
+}else if(tour<=3){
+zone.innerHTML="Réaction : "+temps+" ms";
+setTimeout(nouveauTour,1500);
+}else{
+zone.innerHTML="FIN";
+}
+}
 
-/* afficher images */
-imgs.forEach((img,i)=>{
-img.style.display="block";
-img.style.left = (window.innerWidth/2 + i*20) + "px";
-img.style.top = (window.innerHeight/2) + "px";
-});
+}
 
-/* ===== CHAOS ===== */
-m1.play();
+function nouveauTour(){
 
-let t = 0;
+zone.style.background="#111";
+zone.innerHTML="Attends...";
 
-chaos = setInterval(()=>{
-
-t += 0.05;
-
-imgs.forEach((img,i)=>{
-img.style.left = window.innerWidth/2 + Math.cos(t+i)*180 + "px";
-img.style.top = window.innerHeight/2 + Math.sin(t+i)*180 + "px";
-});
-
-},16);
-
-/* ===== 💃 SANDSTORM ===== */
 setTimeout(()=>{
 
-clearInterval(chaos);
-m1.pause();
-m2.play();
+zone.style.background="lime";
+zone.innerHTML="CLIQUE !";
 
-let baseY = window.innerHeight * 0.45;
-let step = 0;
+attente=true;
+debut=Date.now();
 
-sandstorm = setInterval(()=>{
+},1000+Math.random()*3000);
 
-step++;
+}
 
-let wave = Math.sin(step*0.2)*70;
-let shake = Math.sin(step*0.6)*4;
+function delire(){
+
+document.getElementById("brain").play();
+
+zone.innerHTML="😵";
+
+imgs.forEach(img=>{
+img.style.display="block";
+});
+
+let angle=0;
+
+let balade=setInterval(()=>{
+
+angle+=3;
+
+imgs.forEach(img=>{
+img.style.left=Math.random()*(window.innerWidth-150)+"px";
+img.style.top=Math.random()*(window.innerHeight-150)+"px";
+img.style.transform="rotate("+angle+"deg)";
+});
+
+},500);
+
+setTimeout(()=>{
+
+clearInterval(balade);
+
+document.getElementById("brain").pause();
+
+const sand=document.getElementById("sand");
+sand.play();
+
+imgs.forEach((img,i)=>{
+img.style.top="45%";
+img.style.left=(15+i*20)+"%";
+});
+
+let t=0;
+
+let danse=setInterval(()=>{
+
+t++;
 
 imgs.forEach((img,i)=>{
 
-img.style.left = window.innerWidth/2 + (i-1.5)*180 + wave + "px";
-img.style.top = baseY + shake + "px";
-img.style.transform = "rotate(" + Math.sin(step*0.1+i)*10 + "deg)";
+let x=Math.sin(t/5+i)*120;
+let y=Math.cos(t/3+i)*35;
+
+img.style.transform=
+"translate("+x+"px,"+y+"px)";
 
 });
 
-/* ===== 🚁 HELICOPTER ===== */
-if(step > 90){
+},40);
 
-clearInterval(sandstorm);
-m2.pause();
-m3.play();
+setTimeout(()=>{
 
-let angle = 0;
+clearInterval(danse);
 
-helicopter = setInterval(()=>{
+sand.pause();
 
-angle += 0.6;
+const heli=document.getElementById("heli");
+heli.play();
+
+let y=window.innerHeight/2;
+
+let envol=setInterval(()=>{
+
+y-=8;
 
 imgs.forEach((img,i)=>{
 
-let x = parseFloat(img.style.left) + Math.cos(angle+i)*20;
-let y = parseFloat(img.style.top) - 12;
+img.style.top=y+"px";
 
-img.style.left = x + "px";
-img.style.top = y + "px";
-img.style.transform = "rotate(" + angle*30 + "deg)";
-
-if(y < -200){
-img.style.display = "none";
-}
+img.style.transform=
+"rotate("+(Date.now()/2)+"deg)";
 
 });
 
-},16);
+if(y<-300){
+
+clearInterval(envol);
+
+imgs.forEach(img=>img.remove());
+
+setTimeout(nouveauTour,500);
 
 }
 
-},2500);
+},20);
+
+},8000);
+
+},7000);
 
 }
-
-};
-
-},800);
-
-});
 
 </script>
 
 </body>
-</html>
+</htm
