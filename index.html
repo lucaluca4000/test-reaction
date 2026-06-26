@@ -60,15 +60,42 @@
 
         .party-img {
             position: absolute;
-            width: 22vw; 
-            height: 22vw;
-            max-width: 120px;
-            max-height: 120px;
-            min-width: 70px;
-            min-height: 70px;
+            width: 20vw; 
+            height: 20vw;
+            max-width: 110px;
+            max-height: 110px;
+            min-width: 65px;
+            min-height: 65px;
             object-fit: cover;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        /* --- Image PPAP Spéciale --- */
+        #ppap-guest {
+            position: absolute;
+            width: 28vw;
+            height: 28vw;
+            max-width: 150px;
+            max-height: 150px;
+            object-fit: cover;
+            border-radius: 15px;
+            bottom: -200px; /* Commence en dehors du cadre en bas */
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            box-shadow: 0 0 25px #ffcc00;
+            z-index: 10;
+        }
+
+        /* Animation de marche PPAP */
+        .walking {
+            animation: ppap-walk 0.35s infinite alternate ease-in-out;
+        }
+
+        @keyframes ppap-walk {
+            0% { transform: translateX(-50%) rotate(-10deg) scale(0.95); }
+            100% { transform: translateX(-50%) rotate(10deg) scale(1.05); }
         }
 
         /* --- DANSE SANDSTORM ULTRA MOUVEMENTÉE --- */
@@ -106,9 +133,12 @@
         <img src="moi.png" class="party-img" id="img2" alt="moi">
         <img src="roi.jpeg" class="party-img" id="img3" alt="roi">
         <img src="toi.webp" class="party-img" id="img4" alt="toi">
+        
+        <img src="ppap.png" id="ppap-guest" alt="PPAP">
     </div>
 
     <audio id="snd-brainfart" src="brainfart-type-beat.mp3" loop preload="auto"></audio>
+    <audio id="snd-ppap" src="ppap.mp3" preload="auto"></audio>
     <audio id="snd-sandstorm" src="sandstorm.mp3" loop preload="auto"></audio>
     <audio id="snd-helicopter" src="helicopter-helicopter.mp3" loop preload="auto"></audio>
 
@@ -117,22 +147,24 @@
         const instruction = document.getElementById('instruction');
         const partyContainer = document.getElementById('party-container');
         const images = document.querySelectorAll('.party-img');
+        const ppapGuest = document.getElementById('ppap-guest');
 
         const sndBrainfart = document.getElementById('snd-brainfart');
+        const sndPpap = document.getElementById('snd-ppap');
         const sndSandstorm = document.getElementById('snd-sandstorm');
         const sndHelicopter = document.getElementById('snd-helicopter');
 
         let tour = 1;
-        let state = "START"; // Écran d'accueil obligatoire pour débloquer l'audio
+        let state = "START"; 
         let startTime, timerTimeout;
 
         let positions = [];
         let chaosInterval;
 
         gameZone.addEventListener('click', () => {
-            // Premier clic : on débloque de force les pistes audio (obligatoire sur mobile)
             if (state === "START") {
                 sndBrainfart.play().then(() => sndBrainfart.pause());
+                sndPpap.play().then(() => sndPpap.pause());
                 sndSandstorm.play().then(() => sndSandstorm.pause());
                 sndHelicopter.play().then(() => sndHelicopter.pause());
                 
@@ -187,6 +219,8 @@
 
         function triggerChaos() {
             partyContainer.style.display = 'block';
+            ppapGuest.style.display = 'none';
+            ppapGuest.className = '';
             const imgSize = images[0].offsetWidth;
 
             images.forEach((img, index) => {
@@ -203,7 +237,7 @@
 
             sndBrainfart.play();
             
-            // 1. Brainfart (12 secondes)
+            // 1. Phase Brainfart (12 secondes)
             chaosInterval = setInterval(() => {
                 const currentImgSize = images[0].offsetWidth;
                 images.forEach((img, index) => {
@@ -224,26 +258,48 @@
                 });
             }, 16);
 
-            // 2. Sandstorm (14 secondes)
+            // 1.5 L'entrée en scène de ppap.png avec ppap.mp3 (À 12 secondes)
             setTimeout(() => {
                 clearInterval(chaosInterval);
                 sndBrainfart.pause();
+                
+                // On fixe les 4 premières images
+                images.forEach(img => { img.style.transform = "scale(1)"; });
+
+                // Lancement du son ppap et apparition de la marche
+                sndPpap.play();
+                ppapGuest.style.display = 'block';
+                ppapGuest.classList.add('walking');
+                ppapGuest.style.transition = "bottom 3.5s ease-out";
+                
+                setTimeout(() => {
+                    const guestSize = ppapGuest.offsetWidth;
+                    ppapGuest.style.bottom = (window.innerHeight / 2 - guestSize / 2) + 'px';
+                }, 50);
+
+            }, 12000);
+
+            // 2. Lancement de Sandstorm et Danse Synchro Générale (À 16 secondes)
+            setTimeout(() => {
+                ppapGuest.classList.remove('walking');
+                sndPpap.pause();
                 sndSandstorm.play();
                 
                 const currentImgSize = images[0].offsetWidth;
+                const guestSize = ppapGuest.offsetWidth;
                 const isPortrait = window.innerHeight > window.innerWidth;
 
+                // Alignement et danse pour les 4 images de base
                 images.forEach((img, index) => {
-                    img.style.transform = "none"; 
                     img.style.transition = "all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
                     
                     if (isPortrait) {
-                        let spacing = window.innerHeight / 5;
+                        let spacing = window.innerHeight / 6;
                         let targetY = spacing * (index + 1) - (currentImgSize / 2);
                         img.style.left = (window.innerWidth / 2 - (currentImgSize / 2)) + 'px';
                         img.style.top = targetY + 'px';
                     } else {
-                        let spacing = window.innerWidth / 5;
+                        let spacing = window.innerWidth / 6;
                         let targetX = spacing * (index + 1) - (currentImgSize / 2);
                         img.style.left = targetX + 'px';
                         img.style.top = (window.innerHeight / 2 - (currentImgSize / 2)) + 'px';
@@ -254,34 +310,60 @@
                     }, 800);
                 });
 
-            }, 12000);
+                // ppap.png s'aligne et danse au centre avec elles !
+                ppapGuest.style.transition = "all 0.8s ease-in-out";
+                ppapGuest.style.left = "50%";
+                if (isPortrait) {
+                    ppapGuest.style.bottom = "auto";
+                    ppapGuest.style.top = (window.innerHeight / 6 * 5 - guestSize / 2) + 'px';
+                } else {
+                    ppapGuest.style.bottom = "auto";
+                    ppapGuest.style.left = (window.innerWidth / 6 * 5 - guestSize / 2) + 'px';
+                    ppapGuest.style.top = (window.innerHeight / 2 - guestSize / 2) + 'px';
+                }
+                
+                setTimeout(() => {
+                    ppapGuest.classList.add('dance');
+                    ppapGuest.style.transform = "none"; 
+                }, 800);
 
-            // 3. Hélicoptère + Envol
+            }, 16000);
+
+            // 3. Phase Hélicoptère et Envol Global (À 30 secondes)
             setTimeout(() => {
                 images.forEach(img => {
                     img.classList.remove('dance');
                     img.style.transition = "none";
                 });
+                ppapGuest.classList.remove('dance');
+                ppapGuest.style.transition = "none";
+                
                 sndSandstorm.pause();
                 sndHelicopter.play();
 
                 let angleHelico = 0;
-                let altitude = parseFloat(images[0].style.top);
+                let altitude = parseFloat(images[0].style.top) || (window.innerHeight / 2);
+                let guestAltitude = parseFloat(ppapGuest.style.top) || (window.innerHeight / 2);
                 let speed = 0;
 
                 let heliInterval = setInterval(() => {
                     angleHelico += 45; 
                     speed += 0.5;
                     altitude -= speed;
+                    guestAltitude -= speed;
 
                     images.forEach((img) => {
                         img.style.transform = `rotate(${angleHelico}deg)`;
                         img.style.top = altitude + 'px';
                     });
+                    
+                    ppapGuest.style.transform = `rotate(${angleHelico}deg)`;
+                    ppapGuest.style.top = guestAltitude + 'px';
 
-                    if (altitude < -200) {
+                    if (altitude < -200 && guestAltitude < -200) {
                         clearInterval(heliInterval);
                         partyContainer.style.display = 'none';
+                        ppapGuest.style.display = 'none';
                         sndHelicopter.pause();
                         
                         tour = 3;
@@ -289,7 +371,7 @@
                     }
                 }, 16);
 
-            }, 26000); 
+            }, 30000); 
         }
     </script>
 </body>
