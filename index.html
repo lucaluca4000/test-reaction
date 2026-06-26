@@ -60,7 +60,7 @@
 
         .party-img {
             position: absolute;
-            width: 22vw; /* Taille adaptative selon l'écran */
+            width: 22vw; 
             height: 22vw;
             max-width: 120px;
             max-height: 120px;
@@ -98,7 +98,7 @@
 <body>
 
     <div id="game-zone" class="neutral">
-        <div id="instruction">Cliquez ici pour commencer le test de réaction (3 tours)</div>
+        <div id="instruction">TOUCHER L'ÉCRAN POUR LANCER LE TEST</div>
     </div>
 
     <div id="party-container">
@@ -108,9 +108,9 @@
         <img src="toi.webp" class="party-img" id="img4" alt="toi">
     </div>
 
-    <audio id="snd-brainfart" src="brainfart-type-beat.mp3" loop></audio>
-    <audio id="snd-sandstorm" src="sandstorm.mp3" loop></audio>
-    <audio id="snd-helicopter" src="helicopter-helicopter.mp3" loop></audio>
+    <audio id="snd-brainfart" src="brainfart-type-beat.mp3" loop preload="auto"></audio>
+    <audio id="snd-sandstorm" src="sandstorm.mp3" loop preload="auto"></audio>
+    <audio id="snd-helicopter" src="helicopter-helicopter.mp3" loop preload="auto"></audio>
 
     <script>
         const gameZone = document.getElementById('game-zone');
@@ -123,19 +123,30 @@
         const sndHelicopter = document.getElementById('snd-helicopter');
 
         let tour = 1;
-        let state = "START"; 
+        let state = "START"; // Écran d'accueil obligatoire pour débloquer l'audio
         let startTime, timerTimeout;
 
         let positions = [];
         let chaosInterval;
 
         gameZone.addEventListener('click', () => {
-            if (state === "START" || state === "BREAK") {
+            // Premier clic : on débloque de force les pistes audio (obligatoire sur mobile)
+            if (state === "START") {
+                sndBrainfart.play().then(() => sndBrainfart.pause());
+                sndSandstorm.play().then(() => sndSandstorm.pause());
+                sndHelicopter.play().then(() => sndHelicopter.pause());
+                
+                state = "BREAK";
+                startRound();
+                return;
+            }
+
+            if (state === "BREAK") {
                 if (tour <= 3) startRound();
             } else if (state === "WAITING") {
                 clearTimeout(timerTimeout);
                 gameZone.className = "neutral";
-                instruction.innerHTML = "Trop tôt ! Cliquez pour réessayer ce tour.";
+                instruction.innerHTML = "Trop tôt ! Touchez pour réessayer ce tour.";
                 state = "BREAK";
             } else if (state === "CLICKABLE") {
                 let reactionTime = Date.now() - startTime;
@@ -147,7 +158,7 @@
                     triggerChaos();
                 } else {
                     if (tour === 1) {
-                        instruction.innerHTML = `Temps de réaction : ${reactionTime}ms.<br>Cliquez pour le tour suivant.`;
+                        instruction.innerHTML = `Temps de réaction : ${reactionTime}ms.<br>Touchez pour le tour suivant.`;
                         tour++;
                         state = "BREAK";
                     } else if (tour === 3) {
@@ -168,7 +179,7 @@
             let randomDelay = Math.random() * 2000 + 1500;
             timerTimeout = setTimeout(() => {
                 gameZone.className = "click-now";
-                instruction.innerHTML = "CLIQUEZ MAINTENANT !";
+                instruction.innerHTML = "TOUCHEZ MAINTENANT !";
                 startTime = Date.now();
                 state = "CLICKABLE";
             }, randomDelay);
@@ -176,8 +187,6 @@
 
         function triggerChaos() {
             partyContainer.style.display = 'block';
-            
-            // Dimensions des images calculées en dynamique pour le mobile
             const imgSize = images[0].offsetWidth;
 
             images.forEach((img, index) => {
@@ -194,7 +203,7 @@
 
             sndBrainfart.play();
             
-            // 1. Brainfart (Durée augmentée à 12 secondes au lieu de 6)
+            // 1. Brainfart (12 secondes)
             chaosInterval = setInterval(() => {
                 const currentImgSize = images[0].offsetWidth;
                 images.forEach((img, index) => {
@@ -215,7 +224,7 @@
                 });
             }, 16);
 
-            // 2. Transition vers Sandstorm (Après 12s de Brainfart)
+            // 2. Sandstorm (14 secondes)
             setTimeout(() => {
                 clearInterval(chaosInterval);
                 sndBrainfart.pause();
@@ -225,16 +234,15 @@
                 const isPortrait = window.innerHeight > window.innerWidth;
 
                 images.forEach((img, index) => {
+                    img.style.transform = "none"; 
                     img.style.transition = "all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
                     
                     if (isPortrait) {
-                        // Mode vertical (Mobile standard)
                         let spacing = window.innerHeight / 5;
                         let targetY = spacing * (index + 1) - (currentImgSize / 2);
                         img.style.left = (window.innerWidth / 2 - (currentImgSize / 2)) + 'px';
                         img.style.top = targetY + 'px';
                     } else {
-                        // Mode horizontal (PC ou Mobile couché)
                         let spacing = window.innerWidth / 5;
                         let targetX = spacing * (index + 1) - (currentImgSize / 2);
                         img.style.left = targetX + 'px';
@@ -248,4 +256,41 @@
 
             }, 12000);
 
-            // 3. Transition
+            // 3. Hélicoptère + Envol
+            setTimeout(() => {
+                images.forEach(img => {
+                    img.classList.remove('dance');
+                    img.style.transition = "none";
+                });
+                sndSandstorm.pause();
+                sndHelicopter.play();
+
+                let angleHelico = 0;
+                let altitude = parseFloat(images[0].style.top);
+                let speed = 0;
+
+                let heliInterval = setInterval(() => {
+                    angleHelico += 45; 
+                    speed += 0.5;
+                    altitude -= speed;
+
+                    images.forEach((img) => {
+                        img.style.transform = `rotate(${angleHelico}deg)`;
+                        img.style.top = altitude + 'px';
+                    });
+
+                    if (altitude < -200) {
+                        clearInterval(heliInterval);
+                        partyContainer.style.display = 'none';
+                        sndHelicopter.pause();
+                        
+                        tour = 3;
+                        startRound(); 
+                    }
+                }, 16);
+
+            }, 26000); 
+        }
+    </script>
+</body>
+</html>
