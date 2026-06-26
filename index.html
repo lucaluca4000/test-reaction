@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Test de Réaction Ultime</title>
     <style>
         body {
@@ -18,6 +18,8 @@
             height: 100vh;
             overflow: hidden;
             user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
         }
 
         #game-zone {
@@ -31,19 +33,21 @@
             transition: background-color 0.1s ease;
         }
 
-        .waiting { background-color: #ce2029; } /* Rouge attente */
-        .click-now { background-color: #228b22; } /* Vert clic */
+        .waiting { background-color: #ce2029; } 
+        .click-now { background-color: #228b22; } 
         .neutral { background-color: #121212; }
 
         #instruction {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: bold;
             text-align: center;
             pointer-events: none;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            padding: 0 20px;
+            box-sizing: border-box;
         }
 
-        /* --- Zone des images de la fête --- */
+        /* --- Zone des images --- */
         #party-container {
             position: absolute;
             top: 0;
@@ -56,35 +60,38 @@
 
         .party-img {
             position: absolute;
-            width: 120px;
-            height: 120px;
+            width: 22vw; /* Taille adaptative selon l'écran */
+            height: 22vw;
+            max-width: 120px;
+            max-height: 120px;
+            min-width: 70px;
+            min-height: 70px;
             object-fit: cover;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            transition: transform 0.1s linear;
         }
 
         /* --- DANSE SANDSTORM ULTRA MOUVEMENTÉE --- */
         .dance {
-            animation: ultra-dance 0.3s infinite alternate ease-in-out, rainbow-glow 0.5s infinite alternate;
+            animation: ultra-dance 0.25s infinite alternate ease-in-out, rainbow-glow 0.4s infinite alternate;
         }
 
         @keyframes ultra-dance {
             0% { 
-                transform: translateY(0) scale(0.9) rotate(-15deg); 
+                transform: translateY(0) scale(0.85) rotate(-20deg); 
             }
             50% {
-                transform: scale(1.2) rotate(0deg);
+                transform: scale(1.25) rotate(0deg);
             }
             100% { 
-                transform: translateY(-60px) scale(0.9) rotate(15deg); 
+                transform: translateY(-45px) scale(0.85) rotate(20deg); 
             }
         }
 
         @keyframes rainbow-glow {
-            0% { box-shadow: 0 0 30px #ff0000; filter: hue-rotate(0deg); }
-            50% { box-shadow: 0 0 45px #00ff00; }
-            100% { box-shadow: 0 0 30px #0000ff; filter: hue-rotate(360deg); }
+            0% { box-shadow: 0 0 25px #ff0000; filter: hue-rotate(0deg); }
+            50% { box-shadow: 0 0 40px #00ff00; }
+            100% { box-shadow: 0 0 25px #0000ff; filter: hue-rotate(360deg); }
         }
     </style>
 </head>
@@ -101,7 +108,6 @@
         <img src="toi.webp" class="party-img" id="img4" alt="toi">
     </div>
 
-    <!-- Audios -->
     <audio id="snd-brainfart" src="brainfart-type-beat.mp3" loop></audio>
     <audio id="snd-sandstorm" src="sandstorm.mp3" loop></audio>
     <audio id="snd-helicopter" src="helicopter-helicopter.mp3" loop></audio>
@@ -112,7 +118,6 @@
         const partyContainer = document.getElementById('party-container');
         const images = document.querySelectorAll('.party-img');
 
-        // Sons
         const sndBrainfart = document.getElementById('snd-brainfart');
         const sndSandstorm = document.getElementById('snd-sandstorm');
         const sndHelicopter = document.getElementById('snd-helicopter');
@@ -121,15 +126,12 @@
         let state = "START"; 
         let startTime, timerTimeout;
 
-        // Variables pour le chaos
         let positions = [];
         let chaosInterval;
 
         gameZone.addEventListener('click', () => {
             if (state === "START" || state === "BREAK") {
-                if (tour <= 3) {
-                    startRound();
-                }
+                if (tour <= 3) startRound();
             } else if (state === "WAITING") {
                 clearTimeout(timerTimeout);
                 gameZone.className = "neutral";
@@ -141,7 +143,7 @@
                 
                 if (tour === 2) {
                     state = "PARTY";
-                    instruction.style.opacity = "0"; // Plus aucun texte visible pendant et après la danse
+                    instruction.style.opacity = "0"; 
                     triggerChaos();
                 } else {
                     if (tour === 1) {
@@ -175,12 +177,15 @@
         function triggerChaos() {
             partyContainer.style.display = 'block';
             
+            // Dimensions des images calculées en dynamique pour le mobile
+            const imgSize = images[0].offsetWidth;
+
             images.forEach((img, index) => {
                 positions[index] = {
-                    x: Math.random() * (window.innerWidth - 150),
-                    y: Math.random() * (window.innerHeight - 150),
-                    dx: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 6 + 6), // Vitesse augmentée (6 à 12px)
-                    dy: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 6 + 6),
+                    x: Math.random() * (window.innerWidth - imgSize),
+                    y: Math.random() * (window.innerHeight - imgSize),
+                    dx: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 5 + 5), 
+                    dy: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 5 + 5),
                     angle: Math.random() * 360,
                     scale: 1,
                     scaleDirection: 1
@@ -189,20 +194,20 @@
 
             sndBrainfart.play();
             
-            // 1. Brainfart ultra dynamique (mouvements rapides + scale vibrant)
+            // 1. Brainfart (Durée augmentée à 12 secondes au lieu de 6)
             chaosInterval = setInterval(() => {
+                const currentImgSize = images[0].offsetWidth;
                 images.forEach((img, index) => {
                     let pos = positions[index];
                     pos.x += pos.dx;
                     pos.y += pos.dy;
-                    pos.angle += 4; // Rotation plus rapide
+                    pos.angle += 5; 
 
-                    // Effet de zoom vibrant en continu
-                    pos.scale += 0.05 * pos.scaleDirection;
+                    pos.scale += 0.06 * pos.scaleDirection;
                     if (pos.scale >= 1.4 || pos.scale <= 0.7) pos.scaleDirection *= -1;
 
-                    if (pos.x <= 0 || pos.x >= window.innerWidth - 120) pos.dx *= -1;
-                    if (pos.y <= 0 || pos.y >= window.innerHeight - 120) pos.dy *= -1;
+                    if (pos.x <= 0 || pos.x >= window.innerWidth - currentImgSize) pos.dx *= -1;
+                    if (pos.y <= 0 || pos.y >= window.innerHeight - currentImgSize) pos.dy *= -1;
 
                     img.style.left = pos.x + 'px';
                     img.style.top = pos.y + 'px';
@@ -210,64 +215,37 @@
                 });
             }, 16);
 
-            // 2. Transition vers Sandstorm (Danse Ultra)
+            // 2. Transition vers Sandstorm (Après 12s de Brainfart)
             setTimeout(() => {
                 clearInterval(chaosInterval);
                 sndBrainfart.pause();
                 sndSandstorm.play();
                 
-                let centerY = window.innerHeight / 2 - 60;
-                let spacing = window.innerWidth / 5;
+                const currentImgSize = images[0].offsetWidth;
+                const isPortrait = window.innerHeight > window.innerWidth;
 
                 images.forEach((img, index) => {
-                    let targetX = spacing * (index + 1) - 60;
-                    img.style.transition = "all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
-                    img.style.left = targetX + 'px';
-                    img.style.top = centerY + 'px';
+                    img.style.transition = "all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+                    
+                    if (isPortrait) {
+                        // Mode vertical (Mobile standard)
+                        let spacing = window.innerHeight / 5;
+                        let targetY = spacing * (index + 1) - (currentImgSize / 2);
+                        img.style.left = (window.innerWidth / 2 - (currentImgSize / 2)) + 'px';
+                        img.style.top = targetY + 'px';
+                    } else {
+                        // Mode horizontal (PC ou Mobile couché)
+                        let spacing = window.innerWidth / 5;
+                        let targetX = spacing * (index + 1) - (currentImgSize / 2);
+                        img.style.left = targetX + 'px';
+                        img.style.top = (window.innerHeight / 2 - (currentImgSize / 2)) + 'px';
+                    }
                     
                     setTimeout(() => {
                         img.classList.add('dance');
-                    }, 600);
+                    }, 800);
                 });
 
-            }, 6000);
+            }, 12000);
 
-            // 3. Transition vers Hélicoptère et envol
-            setTimeout(() => {
-                images.forEach(img => {
-                    img.classList.remove('dance');
-                    img.style.transition = "none";
-                });
-                sndSandstorm.pause();
-                sndHelicopter.play();
-
-                let angleHelico = 0;
-                let altitude = window.innerHeight / 2 - 60;
-                let speed = 0;
-
-                let heliInterval = setInterval(() => {
-                    angleHelico += 45; // Rotation ultra rapide style hélice
-                    speed += 0.5;
-                    altitude -= speed;
-
-                    images.forEach((img) => {
-                        img.style.transform = `rotate(${angleHelico}deg)`;
-                        img.style.top = altitude + 'px';
-                    });
-
-                    if (altitude < -200) {
-                        clearInterval(heliInterval);
-                        partyContainer.style.display = 'none';
-                        sndHelicopter.pause();
-                        
-                        // Enchaînement direct vers le tour 3 sans aucun texte intermédiaire
-                        tour = 3;
-                        startRound(); 
-                    }
-                }, 16);
-
-            }, 14000); 
-        }
-    </script>
-</body>
-</html>
+            // 3. Transition
