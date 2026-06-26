@@ -101,6 +101,7 @@
         <img src="toi.webp" class="party-img" id="img4" alt="toi">
     </div>
 
+    <!-- Audios -->
     <audio id="snd-brainfart" src="brainfart-type-beat.mp3" loop></audio>
     <audio id="snd-sandstorm" src="sandstorm.mp3" loop></audio>
     <audio id="snd-helicopter" src="helicopter-helicopter.mp3" loop></audio>
@@ -117,7 +118,7 @@
         const sndHelicopter = document.getElementById('snd-helicopter');
 
         let tour = 1;
-        let state = "START"; // START, WAITING, CLICKABLE, BREAK
+        let state = "START"; 
         let startTime, timerTimeout;
 
         // Variables pour le chaos
@@ -128,9 +129,6 @@
             if (state === "START" || state === "BREAK") {
                 if (tour <= 3) {
                     startRound();
-                } else {
-                    instruction.style.opacity = "1";
-                    instruction.innerHTML = "Test terminé ! Rafraîchis la page pour recommencer.";
                 }
             } else if (state === "WAITING") {
                 clearTimeout(timerTimeout);
@@ -143,15 +141,17 @@
                 
                 if (tour === 2) {
                     state = "PARTY";
-                    // On cache complètement le texte pour le délire
-                    instruction.style.opacity = "0"; 
+                    instruction.style.opacity = "0"; // Plus aucun texte visible pendant et après la danse
                     triggerChaos();
                 } else {
-                    instruction.innerHTML = `Temps de réaction : ${reactionTime}ms.<br>Cliquez pour le tour suivant.`;
-                    tour++;
-                    state = "BREAK";
-                    if(tour > 3) {
-                        instruction.innerHTML = `Test fini ! Score final enregistré.<br>Merci d'avoir joué !`;
+                    if (tour === 1) {
+                        instruction.innerHTML = `Temps de réaction : ${reactionTime}ms.<br>Cliquez pour le tour suivant.`;
+                        tour++;
+                        state = "BREAK";
+                    } else if (tour === 3) {
+                        instruction.innerHTML = `Test fini ! Score final : ${reactionTime}ms.<br>Merci d'avoir joué !`;
+                        tour++;
+                        state = "END";
                     }
                 }
             }
@@ -179,27 +179,34 @@
                 positions[index] = {
                     x: Math.random() * (window.innerWidth - 150),
                     y: Math.random() * (window.innerHeight - 150),
-                    dx: (Math.random() - 0.5) * 5,
-                    dy: (Math.random() - 0.5) * 5,
-                    angle: 0
+                    dx: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 6 + 6), // Vitesse augmentée (6 à 12px)
+                    dy: (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 6 + 6),
+                    angle: Math.random() * 360,
+                    scale: 1,
+                    scaleDirection: 1
                 };
             });
 
             sndBrainfart.play();
             
+            // 1. Brainfart ultra dynamique (mouvements rapides + scale vibrant)
             chaosInterval = setInterval(() => {
                 images.forEach((img, index) => {
                     let pos = positions[index];
                     pos.x += pos.dx;
                     pos.y += pos.dy;
-                    pos.angle += 0.8;
+                    pos.angle += 4; // Rotation plus rapide
+
+                    // Effet de zoom vibrant en continu
+                    pos.scale += 0.05 * pos.scaleDirection;
+                    if (pos.scale >= 1.4 || pos.scale <= 0.7) pos.scaleDirection *= -1;
 
                     if (pos.x <= 0 || pos.x >= window.innerWidth - 120) pos.dx *= -1;
                     if (pos.y <= 0 || pos.y >= window.innerHeight - 120) pos.dy *= -1;
 
                     img.style.left = pos.x + 'px';
                     img.style.top = pos.y + 'px';
-                    img.style.transform = `rotate(${pos.angle}deg)`;
+                    img.style.transform = `rotate(${pos.angle}deg) scale(${pos.scale})`;
                 });
             }, 16);
 
@@ -214,13 +221,13 @@
 
                 images.forEach((img, index) => {
                     let targetX = spacing * (index + 1) - 60;
-                    img.style.transition = "all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+                    img.style.transition = "all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
                     img.style.left = targetX + 'px';
                     img.style.top = centerY + 'px';
                     
                     setTimeout(() => {
                         img.classList.add('dance');
-                    }, 800);
+                    }, 600);
                 });
 
             }, 6000);
@@ -239,8 +246,8 @@
                 let speed = 0;
 
                 let heliInterval = setInterval(() => {
-                    angleHelico += 35; // Ça tourne encore plus vite !
-                    speed += 0.4;
+                    angleHelico += 45; // Rotation ultra rapide style hélice
+                    speed += 0.5;
                     altitude -= speed;
 
                     images.forEach((img) => {
@@ -253,15 +260,13 @@
                         partyContainer.style.display = 'none';
                         sndHelicopter.pause();
                         
-                        // Fin de la fête : on remet le texte pour le Tour 3
+                        // Enchaînement direct vers le tour 3 sans aucun texte intermédiaire
                         tour = 3;
-                        state = "BREAK";
-                        instruction.style.opacity = "1";
-                        instruction.innerHTML = "note sur 10 la page";
+                        startRound(); 
                     }
                 }, 16);
 
-            }, 14000); // Un poil plus long pour profiter de la danse
+            }, 14000); 
         }
     </script>
 </body>
