@@ -84,4 +84,185 @@
         @keyframes rainbow-glow {
             0% { box-shadow: 0 0 30px #ff0000; filter: hue-rotate(0deg); }
             50% { box-shadow: 0 0 45px #00ff00; }
-            100% { box-shadow: 0 0 30px #0000ff; filter: hue-
+            100% { box-shadow: 0 0 30px #0000ff; filter: hue-rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-zone" class="neutral">
+        <div id="instruction">Cliquez ici pour commencer le test de réaction (3 tours)</div>
+    </div>
+
+    <div id="party-container">
+        <img src="R.jpg" class="party-img" id="img1" alt="R">
+        <img src="moi.png" class="party-img" id="img2" alt="moi">
+        <img src="roi.jpeg" class="party-img" id="img3" alt="roi">
+        <img src="toi.webp" class="party-img" id="img4" alt="toi">
+    </div>
+
+    <audio id="snd-brainfart" src="brainfart-type-beat.mp3" loop></audio>
+    <audio id="snd-sandstorm" src="sandstorm.mp3" loop></audio>
+    <audio id="snd-helicopter" src="helicopter-helicopter.mp3" loop></audio>
+
+    <script>
+        const gameZone = document.getElementById('game-zone');
+        const instruction = document.getElementById('instruction');
+        const partyContainer = document.getElementById('party-container');
+        const images = document.querySelectorAll('.party-img');
+
+        // Sons
+        const sndBrainfart = document.getElementById('snd-brainfart');
+        const sndSandstorm = document.getElementById('snd-sandstorm');
+        const sndHelicopter = document.getElementById('snd-helicopter');
+
+        let tour = 1;
+        let state = "START"; // START, WAITING, CLICKABLE, BREAK
+        let startTime, timerTimeout;
+
+        // Variables pour le chaos
+        let positions = [];
+        let chaosInterval;
+
+        gameZone.addEventListener('click', () => {
+            if (state === "START" || state === "BREAK") {
+                if (tour <= 3) {
+                    startRound();
+                } else {
+                    instruction.style.opacity = "1";
+                    instruction.innerHTML = "Test terminé ! Rafraîchis la page pour recommencer.";
+                }
+            } else if (state === "WAITING") {
+                clearTimeout(timerTimeout);
+                gameZone.className = "neutral";
+                instruction.innerHTML = "Trop tôt ! Cliquez pour réessayer ce tour.";
+                state = "BREAK";
+            } else if (state === "CLICKABLE") {
+                let reactionTime = Date.now() - startTime;
+                gameZone.className = "neutral";
+                
+                if (tour === 2) {
+                    state = "PARTY";
+                    // On cache complètement le texte pour le délire
+                    instruction.style.opacity = "0"; 
+                    triggerChaos();
+                } else {
+                    instruction.innerHTML = `Temps de réaction : ${reactionTime}ms.<br>Cliquez pour le tour suivant.`;
+                    tour++;
+                    state = "BREAK";
+                    if(tour > 3) {
+                        instruction.innerHTML = `Test fini ! Score final enregistré.<br>Merci d'avoir joué !`;
+                    }
+                }
+            }
+        });
+
+        function startRound() {
+            instruction.style.opacity = "1";
+            instruction.innerHTML = `Tour ${tour} : Attendez le VERT...`;
+            gameZone.className = "waiting";
+            state = "WAITING";
+
+            let randomDelay = Math.random() * 2000 + 1500;
+            timerTimeout = setTimeout(() => {
+                gameZone.className = "click-now";
+                instruction.innerHTML = "CLIQUEZ MAINTENANT !";
+                startTime = Date.now();
+                state = "CLICKABLE";
+            }, randomDelay);
+        }
+
+        function triggerChaos() {
+            partyContainer.style.display = 'block';
+            
+            images.forEach((img, index) => {
+                positions[index] = {
+                    x: Math.random() * (window.innerWidth - 150),
+                    y: Math.random() * (window.innerHeight - 150),
+                    dx: (Math.random() - 0.5) * 5,
+                    dy: (Math.random() - 0.5) * 5,
+                    angle: 0
+                };
+            });
+
+            sndBrainfart.play();
+            
+            chaosInterval = setInterval(() => {
+                images.forEach((img, index) => {
+                    let pos = positions[index];
+                    pos.x += pos.dx;
+                    pos.y += pos.dy;
+                    pos.angle += 0.8;
+
+                    if (pos.x <= 0 || pos.x >= window.innerWidth - 120) pos.dx *= -1;
+                    if (pos.y <= 0 || pos.y >= window.innerHeight - 120) pos.dy *= -1;
+
+                    img.style.left = pos.x + 'px';
+                    img.style.top = pos.y + 'px';
+                    img.style.transform = `rotate(${pos.angle}deg)`;
+                });
+            }, 16);
+
+            // 2. Transition vers Sandstorm (Danse Ultra)
+            setTimeout(() => {
+                clearInterval(chaosInterval);
+                sndBrainfart.pause();
+                sndSandstorm.play();
+                
+                let centerY = window.innerHeight / 2 - 60;
+                let spacing = window.innerWidth / 5;
+
+                images.forEach((img, index) => {
+                    let targetX = spacing * (index + 1) - 60;
+                    img.style.transition = "all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+                    img.style.left = targetX + 'px';
+                    img.style.top = centerY + 'px';
+                    
+                    setTimeout(() => {
+                        img.classList.add('dance');
+                    }, 800);
+                });
+
+            }, 6000);
+
+            // 3. Transition vers Hélicoptère et envol
+            setTimeout(() => {
+                images.forEach(img => {
+                    img.classList.remove('dance');
+                    img.style.transition = "none";
+                });
+                sndSandstorm.pause();
+                sndHelicopter.play();
+
+                let angleHelico = 0;
+                let altitude = window.innerHeight / 2 - 60;
+                let speed = 0;
+
+                let heliInterval = setInterval(() => {
+                    angleHelico += 35; // Ça tourne encore plus vite !
+                    speed += 0.4;
+                    altitude -= speed;
+
+                    images.forEach((img) => {
+                        img.style.transform = `rotate(${angleHelico}deg)`;
+                        img.style.top = altitude + 'px';
+                    });
+
+                    if (altitude < -200) {
+                        clearInterval(heliInterval);
+                        partyContainer.style.display = 'none';
+                        sndHelicopter.pause();
+                        
+                        // Fin de la fête : on remet le texte pour le Tour 3
+                        tour = 3;
+                        state = "BREAK";
+                        instruction.style.opacity = "1";
+                        instruction.innerHTML = "Ouf... Quel délire. Cliquez pour passer au Tour 3 (Dernier tour).";
+                    }
+                }, 16);
+
+            }, 14000); // Un poil plus long pour profiter de la danse
+        }
+    </script>
+</body>
+</html>
