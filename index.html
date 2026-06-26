@@ -1,1 +1,405 @@
-<audio id="helico" src="helicopter-helicopter.mp3"></audio>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test de reaction</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #111, #1d1d1d);
+      color: white;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .center-ui {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+      padding: 20px;
+      z-index: 20;
+    }
+
+    h1 {
+      font-size: 2rem;
+    }
+
+    p {
+      font-size: 1.1rem;
+      max-width: 700px;
+      line-height: 1.5;
+    }
+
+    button {
+      padding: 14px 28px;
+      border: none;
+      border-radius: 14px;
+      background: #00c853;
+      color: white;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      background: #00b34a;
+    }
+
+    #status {
+      font-size: 1.3rem;
+      font-weight: bold;
+      min-height: 32px;
+    }
+
+    #reactionBtn {
+      display: none;
+      position: absolute;
+      z-index: 15;
+      left: 50%;
+      top: 65%;
+      transform: translate(-50%, -50%);
+      background: #ff1744;
+      padding: 20px 36px;
+      font-size: 1.3rem;
+    }
+
+    #reactionBtn.show {
+      display: block;
+      animation: pop 0.2s ease;
+    }
+
+    @keyframes pop {
+      from {
+        transform: translate(-50%, -50%) scale(0.7);
+      }
+      to {
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    #arena {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .sprite {
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+      transition: left 1s ease, top 1s ease, transform 1s ease;
+      opacity: 0;
+    }
+
+    .visible {
+      opacity: 1;
+    }
+
+    #resultBox {
+      position: absolute;
+      left: 50%;
+      top: 12%;
+      transform: translateX(-50%);
+      z-index: 20;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 12px 18px;
+      border-radius: 14px;
+      display: none;
+      font-size: 1rem;
+      text-align: center;
+      backdrop-filter: blur(6px);
+    }
+
+    .small {
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+
+    .hide {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="resultBox"></div>
+
+    <div class="center-ui" id="menu">
+      <h1>Test de reaction - 3 tours</h1>
+      <p>
+        Clique sur <strong>CLIQUE !</strong> le plus vite possible quand il apparait.
+        Mais au 2e tour... ca part en vrille.
+      </p>
+      <button id="startBtn">Commencer</button>
+      <div id="status"></div>
+      <p class="small">Astuce: sur mobile, mets le son.</p>
+    </div>
+
+    <button id="reactionBtn">CLIQUE !</button>
+
+    <div id="arena">
+      <img src="moi.png" id="img1" class="sprite" alt="moi" />
+      <img src="roi.jpeg" id="img2" class="sprite" alt="roi" />
+      <img src="toi.webp" id="img3" class="sprite" alt="toi" />
+    </div>
+
+    <audio id="brainfart" src="brainfart-type-beat.mp3"></audio>
+    <audio id="sandstorm" src="sandstorm.mp3"></audio>
+    <audio id="helico" src="helicopter-helicopter.mp3"></audio>
+  </div>
+
+  <script>
+    const startBtn = document.getElementById("startBtn");
+    const menu = document.getElementById("menu");
+    const statusText = document.getElementById("status");
+    const reactionBtn = document.getElementById("reactionBtn");
+    const resultBox = document.getElementById("resultBox");
+
+    const brainfart = document.getElementById("brainfart");
+    const sandstorm = document.getElementById("sandstorm");
+    const helico = document.getElementById("helico");
+
+    const sprites = [
+      document.getElementById("img1"),
+      document.getElementById("img2"),
+      document.getElementById("img3")
+    ];
+
+    let currentRound = 1;
+    let startTime = 0;
+    let waiting = false;
+    let moveInterval = null;
+    let spinInterval = null;
+    let danceInterval = null;
+    let helicopterInterval = null;
+    const scores = [];
+
+    function random(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function stopAllSounds() {
+      [brainfart, sandstorm, helico].forEach(a => {
+        a.pause();
+        a.currentTime = 0;
+      });
+    }
+
+    function showResult(text) {
+      resultBox.style.display = "block";
+      resultBox.innerHTML = text;
+    }
+
+    function placeSprite(el, x, y, rotate = 0, scale = 1) {
+      el.style.left = x + "px";
+      el.style.top = y + "px";
+      el.style.transform = `rotate(${rotate}deg) scale(${scale})`;
+    }
+
+    function showSprites() {
+      sprites.forEach((img, i) => {
+        img.classList.add("visible");
+        placeSprite(
+          img,
+          40 + i * 120,
+          180 + i * 40,
+          0,
+          1
+        );
+      });
+    }
+
+    function hideSprites() {
+      sprites.forEach(img => {
+        img.classList.remove("visible");
+        img.style.transform = "rotate(0deg) scale(1)";
+      });
+    }
+
+    function startRound(round) {
+      waiting = true;
+      reactionBtn.classList.remove("show");
+      statusText.textContent = `Tour ${round}/3 - Prepare-toi...`;
+
+      const delay = random(1200, 3000);
+
+      setTimeout(() => {
+        if (round !== 2) {
+          reactionBtn.classList.add("show");
+          statusText.textContent = `Tour ${round}/3 - Clique maintenant !`;
+          startTime = performance.now();
+          waiting = false;
+        } else {
+          startTrollRound();
+        }
+      }, delay);
+    }
+
+    reactionBtn.addEventListener("click", () => {
+      if (waiting) return;
+
+      const reaction = Math.round(performance.now() - startTime);
+      scores.push(reaction);
+      reactionBtn.classList.remove("show");
+
+      if (currentRound < 3) {
+        statusText.textContent = `Tour ${currentRound} termine: ${reaction} ms`;
+        currentRound++;
+        setTimeout(() => startRound(currentRound), 1400);
+      } else {
+        statusText.textContent = `Tour 3 termine: ${reaction} ms`;
+        const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+        showResult(`
+          <strong>Partie finie</strong><br>
+          Scores: ${scores.map(s => s + " ms").join(" | ")}<br>
+          Moyenne: ${avg} ms
+        `);
+        startBtn.classList.remove("hide");
+        startBtn.textContent = "Rejouer";
+      }
+    });
+
+    function startTrollRound() {
+      statusText.textContent = "Tour 2/3 - Oh non...";
+      showSprites();
+
+      stopAllSounds();
+      brainfart.play().catch(() => {});
+
+      let angle = 0;
+
+      moveInterval = setInterval(() => {
+        angle += 12;
+        sprites.forEach((img, i) => {
+          const x = random(0, window.innerWidth - 150);
+          const y = random(80, window.innerHeight - 180);
+          const rot = angle + i * 30;
+          const scale = 0.85 + Math.random() * 0.45;
+          placeSprite(img, x, y, rot, scale);
+        });
+      }, 650);
+
+      setTimeout(() => {
+        clearInterval(moveInterval);
+        brainfart.pause();
+        brainfart.currentTime = 0;
+
+        sandstorm.play().catch(() => {});
+        statusText.textContent = "Sandstorm mode active";
+
+        const centerY = Math.max(120, Math.floor(window.innerHeight * 0.45));
+        const gap = Math.min(220, Math.floor(window.innerWidth / 4));
+
+        sprites.forEach((img, i) => {
+          const x = window.innerWidth / 2 - 70 + (i - 1) * gap;
+          placeSprite(img, x, centerY, 0, 1);
+        });
+
+        let beat = 0;
+        danceInterval = setInterval(() => {
+          beat++;
+          sprites.forEach((img, i) => {
+            const x = window.innerWidth / 2 - 70 + (i - 1) * gap;
+            const y = centerY + Math.sin((beat + i) * 0.9) * 30;
+            const rot = Math.sin((beat + i) * 0.9) * 18;
+            const scale = 1 + Math.abs(Math.sin((beat + i) * 0.9)) * 0.2;
+            placeSprite(img, x, y, rot, scale);
+          });
+        }, 120);
+
+        setTimeout(() => {
+          clearInterval(danceInterval);
+          sandstorm.pause();
+          sandstorm.currentTime = 0;
+
+          helico.play().catch(() => {});
+          statusText.textContent = "HELICOPTER HELICOPTER";
+
+          let fly = 0;
+          helicopterInterval = setInterval(() => {
+            fly += 10;
+            sprites.forEach((img, i) => {
+              const baseX = window.innerWidth / 2 - 70 + (i - 1) * 180;
+              const x = baseX + Math.sin((fly + i * 25) * 0.08) * 60;
+              const y = centerY - fly - i * 40;
+              const rot = fly * 2.8;
+              const scale = Math.max(0.5, 1 - fly / 900);
+              placeSprite(img, x, y, rot, scale);
+            });
+
+            if (fly > window.innerHeight + 250) {
+              clearInterval(helicopterInterval);
+              helico.pause();
+              helico.currentTime = 0;
+              hideSprites();
+
+              const fakeScore = random(1, 12);
+              scores.push(fakeScore);
+
+              showResult(`
+                <strong>Tour 2 termine</strong><br>
+                Score totalement truque: ${fakeScore} ms<br>
+                Le jeu a decide que tu es trop fort.
+              `);
+
+              currentRound = 3;
+              setTimeout(() => {
+                resultBox.style.display = "none";
+                startRound(3);
+              }, 1800);
+            }
+          }, 50);
+        }, 6500);
+      }, 5000);
+    }
+
+    startBtn.addEventListener("click", () => {
+      stopAllSounds();
+      clearInterval(moveInterval);
+      clearInterval(spinInterval);
+      clearInterval(danceInterval);
+      clearInterval(helicopterInterval);
+
+      scores.length = 0;
+      currentRound = 1;
+      waiting = false;
+
+      hideSprites();
+      resultBox.style.display = "none";
+      startBtn.classList.add("hide");
+      statusText.textContent = "";
+      reactionBtn.classList.remove("show");
+
+      startRound(1);
+    });
+  </script>
+</body>
+</html>
