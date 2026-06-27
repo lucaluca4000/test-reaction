@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -80,7 +80,7 @@
             max-height: 150px;
             object-fit: cover;
             border-radius: 15px;
-            bottom: -200px; /* Commence en dehors du cadre en bas */
+            bottom: -200px; 
             left: 50%;
             transform: translateX(-50%);
             display: none;
@@ -133,10 +133,10 @@
         <img src="moi.png" class="party-img" id="img2" alt="moi">
         <img src="roi.jpeg" class="party-img" id="img3" alt="roi">
         <img src="toi.webp" class="party-img" id="img4" alt="toi">
-        
         <img src="ppap.png" id="ppap-guest" alt="PPAP">
     </div>
 
+    <audio id="snd-click" src="click.mp3" preload="auto"></audio>
     <audio id="snd-brainfart" src="brainfart-type-beat.mp3" loop preload="auto"></audio>
     <audio id="snd-ppap" src="ppap.mp3" preload="auto"></audio>
     <audio id="snd-sandstorm" src="sandstorm.mp3" loop preload="auto"></audio>
@@ -149,6 +149,7 @@
         const images = document.querySelectorAll('.party-img');
         const ppapGuest = document.getElementById('ppap-guest');
 
+        const sndClick = document.getElementById('snd-click');
         const sndBrainfart = document.getElementById('snd-brainfart');
         const sndPpap = document.getElementById('snd-ppap');
         const sndSandstorm = document.getElementById('snd-sandstorm');
@@ -162,6 +163,12 @@
         let chaosInterval;
 
         gameZone.addEventListener('click', () => {
+            // Le son de clic se lance UNIQUEMENT si on est dans le jeu normal (pas pendant la fête)
+            if (state !== "PARTY") {
+                sndClick.currentTime = 0;
+                sndClick.play().catch(() => {});
+            }
+
             if (state === "START") {
                 sndBrainfart.play().then(() => sndBrainfart.pause());
                 sndPpap.play().then(() => sndPpap.pause());
@@ -185,7 +192,7 @@
                 gameZone.className = "neutral";
                 
                 if (tour === 2) {
-                    state = "PARTY";
+                    state = "PARTY"; // Désactive les futurs bruits de clic.mp3
                     instruction.style.opacity = "0"; 
                     triggerChaos();
                 } else {
@@ -258,15 +265,13 @@
                 });
             }, 16);
 
-            // 1.5 L'entrée en scène de ppap.png avec ppap.mp3 (À 12 secondes)
+            // 1.5 Entrée de ppap.png (À 12 secondes)
             setTimeout(() => {
                 clearInterval(chaosInterval);
                 sndBrainfart.pause();
                 
-                // On fixe les 4 premières images
                 images.forEach(img => { img.style.transform = "scale(1)"; });
 
-                // Lancement du son ppap et apparition de la marche
                 sndPpap.play();
                 ppapGuest.style.display = 'block';
                 ppapGuest.classList.add('walking');
@@ -279,7 +284,7 @@
 
             }, 12000);
 
-            // 2. Lancement de Sandstorm et Danse Synchro Générale (À 16 secondes)
+            // 2. Sandstorm et Danse (À 16 secondes)
             setTimeout(() => {
                 ppapGuest.classList.remove('walking');
                 sndPpap.pause();
@@ -289,7 +294,6 @@
                 const guestSize = ppapGuest.offsetWidth;
                 const isPortrait = window.innerHeight > window.innerWidth;
 
-                // Alignement et danse pour les 4 images de base
                 images.forEach((img, index) => {
                     img.style.transition = "all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
                     
@@ -310,7 +314,6 @@
                     }, 800);
                 });
 
-                // ppap.png s'aligne et danse au centre avec elles !
                 ppapGuest.style.transition = "all 0.8s ease-in-out";
                 ppapGuest.style.left = "50%";
                 if (isPortrait) {
@@ -329,7 +332,7 @@
 
             }, 16000);
 
-            // 3. Phase Hélicoptère et Envol Global (À 30 secondes)
+            // 3. Hélicoptère (À 30 secondes)
             setTimeout(() => {
                 images.forEach(img => {
                     img.classList.remove('dance');
